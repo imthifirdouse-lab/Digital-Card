@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Card Generator (Premium Effects)</title>
+    <title>Magic Card: Linkable Edition</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --bg: #f3f4f6; --surface: #ffffff; --text: #1f2937; --primary: #6366f1; }
@@ -14,12 +18,13 @@
         .app-container { display: flex; width: 100%; height: 100%; }
 
         /* LEFT: CONTROL PANEL */
-        .input-panel { width: 420px; background: var(--surface); padding: 30px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; box-shadow: 4px 0 24px rgba(0,0,0,0.05); overflow-y: auto; }
+        .input-panel { width: 440px; background: var(--surface); padding: 30px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; box-shadow: 4px 0 24px rgba(0,0,0,0.05); overflow-y: auto; }
         .brand { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
         .subtitle { font-size: 13px; color: #6b7280; margin-bottom: 25px; }
 
         .control-section { margin-bottom: 25px; border-bottom: 1px solid #f3f4f6; padding-bottom: 20px; }
         .control-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #9ca3af; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .sub-label { font-size: 10px; font-weight: 700; color: #6b7280; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
 
         /* INPUTS */
         .smart-input-container { position: relative; margin-bottom: 10px; }
@@ -28,17 +33,12 @@
         .input-icon { position: absolute; left: 12px; top: 13px; color: #9ca3af; font-size: 14px; }
         .std-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-bottom: 8px; }
 
-        /* IMAGE CONTROLS */
-        .img-controls { display: flex; gap: 10px; margin-top: 5px; }
-        .img-btn { flex: 1; padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 6px; font-size: 11px; font-weight: 600; color: #4b5563; cursor: pointer; text-align: center; }
-        .img-btn:hover { background: #eff6ff; color: var(--primary); border-color: var(--primary); }
-        .hidden-file { display: none; }
-
         /* BUTTON GRIDS */
-        .option-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
-        .texture-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        
-        .option-btn { padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; cursor: pointer; font-size: 11px; font-weight: 600; color: #4b5563; transition: 0.2s; position: relative; overflow: hidden; }
+        .option-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+        .texture-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+        .fx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+
+        .option-btn { padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; cursor: pointer; font-size: 10px; font-weight: 600; color: #4b5563; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; height: 32px; }
         .option-btn:hover { border-color: var(--primary); color: var(--primary); }
         .option-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3); }
 
@@ -46,7 +46,7 @@
         .preview-panel { flex: 1; background: #e5e7eb; background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 20px 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
         /* --- CARD ARCHITECTURE --- */
-        .card-wrapper { position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.2); overflow: hidden; display: flex; transition: all 0.4s ease; transform-style: preserve-3d; }
+        .card-wrapper { position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.2); overflow: hidden; display: flex; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); transform-style: preserve-3d; }
         .format-landscape { width: 480px; height: 280px; border-radius: 24px; }
         .format-portrait { width: 320px; height: 568px; border-radius: 30px; flex-direction: column; }
 
@@ -54,31 +54,26 @@
         .layer-base { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1; }
         .layer-texture { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; mix-blend-mode: overlay; pointer-events: none; }
         .layer-finish { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 3; pointer-events: none; }
-        .c-content { display: flex; width: 100%; height: 100%; z-index: 10; position: relative; }
+        .c-content { display: flex; width: 100%; height: 100%; z-index: 10; position: relative; transition: 0.3s; }
 
-        /* BASE THEMES */
+        /* THEMES & FX */
         .theme-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         .theme-linkedin { background: linear-gradient(135deg, #0077b5, #005582); }
         .theme-twitter { background: linear-gradient(135deg, #1da1f2, #0d8bd9); }
         .theme-dark { background: #111; }
         .theme-gold { background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); }
         .theme-mesh { background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%); background-color: #333; }
+        .theme-generic { background: linear-gradient(135deg, #1f2937, #111827); }
 
-        /* TEXTURES & FINISHES */
         .fx-noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"); }
-        
-        .fx-glass { 
-            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.1) 100%);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
-        }
-        
-        .fx-holo {
-            background: linear-gradient(135deg, transparent 35%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.3) 55%, transparent 65%);
-            background-size: 200% 200%;
-            mix-blend-mode: color-dodge;
-        }
+        .fx-glass { background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.1) 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3); }
+        .fx-holo { background: linear-gradient(135deg, transparent 35%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.3) 55%, transparent 65%); background-size: 200% 200%; mix-blend-mode: color-dodge; }
+        .fx-carbon { background: radial-gradient(black 15%, transparent 16%) 0 0, radial-gradient(black 15%, transparent 16%) 8px 8px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 0 1px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 8px 9px; background-size: 16px 16px; opacity: 0.2; }
+        .fx-vignette { background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.6) 100%); }
 
-        /* CARD CONTENT STYLES */
+        /* QR & CONTENT */
+        .c-qr { position: absolute; bottom: 20px; right: 20px; background: white; padding: 6px; border-radius: 8px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 50; }
+        
         .style-classic .c-left { width: 35%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.2); }
         .format-portrait.style-classic .c-left { height: 35%; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.2); border-right: none; }
         .style-classic .c-right { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: center; color: white; }
@@ -88,15 +83,23 @@
         .style-modern .c-avatar { width: 100px; height: 100px; border-radius: 25px; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; overflow: hidden; margin-bottom: 15px; color: #333; font-weight: 800; font-size: 35px; border: 2px solid rgba(255,255,255,0.5); }
         .style-modern .c-info-row { justify-content: center; background: rgba(255,255,255,0.15); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* TYPOGRAPHY */
         .c-img { width: 100%; height: 100%; object-fit: cover; }
         .c-handle { font-size: 11px; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .c-name { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .c-info-row { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 8px; font-weight: 500; }
         .c-tag { display: inline-block; padding: 5px 12px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
 
-        .btn-dl { margin-top: 30px; padding: 12px 40px; background: #1f2937; color: white; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: 0.2s; }
-        .btn-dl:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        /* ACTION BAR */
+        .actions { margin-top: 20px; display: flex; gap: 10px; }
+        .btn-dl { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-png { background: #1f2937; color: white; }
+        .btn-pdf { background: #ef4444; color: white; }
+        .btn-dl:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* DRAG & DROP */
+        .drop-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; background: #f9fafb; transition: 0.2s; cursor: pointer; margin-top: 10px; }
+        .drop-zone:hover { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+        .hidden-file { display: none; }
     </style>
 </head>
 <body>
@@ -104,48 +107,45 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Create ultra-high quality digital assets.</div>
+        <div class="subtitle">Create clickable & scannable digital assets.</div>
 
         <div class="control-section">
             <div class="control-title">1. Content Source</div>
             <div class="smart-input-container">
                 <i class="fas fa-link input-icon"></i>
-                <input type="text" class="smart-input" id="linkInput" placeholder="Paste social link..." oninput="analyzeLink()">
+                <input type="text" class="smart-input" id="linkInput" placeholder="Paste link..." oninput="analyzeLink()">
             </div>
-            
-            <div class="img-controls">
-                <label class="img-btn" onclick="document.getElementById('fileInput').click()">
-                    <i class="fas fa-upload"></i> Upload Photo
-                </label>
-                <input type="file" id="fileInput" class="hidden-file" accept="image/*" onchange="handleFileUpload()">
+            <div class="drop-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Drag & Drop Profile Pic</span>
+                <input type="file" id="fileInput" class="hidden-file" accept="image/*" onchange="handleFileSelect(this)">
             </div>
         </div>
 
         <div class="control-section">
-            <div class="control-title">2. Layout & Style</div>
+            <div class="control-title">2. Layout</div>
             <div class="option-grid">
                 <button class="option-btn active" onclick="setFormat('landscape', this)">Landscape</button>
                 <button class="option-btn" onclick="setFormat('portrait', this)">Portrait</button>
+            </div>
+            <div class="option-grid">
                 <button class="option-btn active" onclick="setStyle('classic', this)">Classic</button>
                 <button class="option-btn" onclick="setStyle('modern', this)">Modern</button>
             </div>
         </div>
 
         <div class="control-section">
-            <div class="control-title">3. Premium Finishes</div>
-            <label style="font-size:10px; color:#666; margin-bottom:5px; display:block;">BASE MATERIAL</label>
+            <div class="control-title">3. Finishes</div>
             <div class="texture-grid">
-                <button class="option-btn active" onclick="setTheme('default', this)">Original</button>
+                <button class="option-btn active" onclick="setTheme('default', this)">Base</button>
                 <button class="option-btn" onclick="setTheme('theme-gold', this)">Gold</button>
                 <button class="option-btn" onclick="setTheme('theme-mesh', this)">Mesh</button>
-                <button class="option-btn" onclick="setTheme('theme-dark', this)">Dark</button>
             </div>
-
-            <label style="font-size:10px; color:#666; margin-top:10px; margin-bottom:5px; display:block;">OVERLAY EFFECTS</label>
-            <div class="texture-grid">
-                <button class="option-btn" onclick="toggleFx('fx-glass', this)">✨ Glossy</button>
-                <button class="option-btn" onclick="toggleFx('fx-noise', this)">🕸️ Grain</button>
-                <button class="option-btn" onclick="toggleFx('fx-holo', this)">🌈 Holo</button>
+            <div class="fx-grid">
+                <button class="option-btn" onclick="toggleFx('fx-glass', this)">Glass</button>
+                <button class="option-btn" onclick="toggleFx('fx-noise', this)">Grain</button>
+                <button class="option-btn" onclick="toggleFx('fx-carbon', this)">Carbon</button>
+                <button class="option-btn" onclick="toggleFx('fx-vignette', this)">Vignette</button>
             </div>
         </div>
 
@@ -154,6 +154,19 @@
             <input type="text" class="std-input" id="inName" placeholder="Name" oninput="renderCard()">
             <input type="text" class="std-input" id="inTitle" placeholder="Subtitle" oninput="renderCard()">
             <input type="text" class="std-input" id="inContact" placeholder="Contact" oninput="renderCard()">
+            
+            <div style="margin-top:15px; display:flex; align-items:center; justify-content:space-between; background:#f9fafb; padding:10px; border-radius:8px; border:1px solid #e5e7eb;">
+                <span style="font-size:11px; font-weight:700; color:#4b5563;">SHOW QR CODE</span>
+                <label style="position:relative; display:inline-block; width:34px; height:20px;">
+                    <input type="checkbox" onchange="toggleQR(this)" style="opacity:0; width:0; height:0;">
+                    <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; border-radius:34px; transition:.4s;" id="qrToggleSlider"></span>
+                </label>
+                <style>
+                    #qrToggleSlider:before { position:absolute; content:""; height:14px; width:14px; left:3px; bottom:3px; background-color:white; border-radius:50%; transition:.4s; }
+                    input:checked + #qrToggleSlider { background-color: var(--primary); }
+                    input:checked + #qrToggleSlider:before { transform: translateX(14px); }
+                </style>
+            </div>
         </div>
     </div>
 
@@ -162,11 +175,8 @@
             <div class="layer-base theme-generic" id="cardTheme"></div>
             <div class="layer-texture" id="cardTexture"></div>
             <div class="layer-finish" id="cardFinish"></div>
-            
             <div class="c-content">
-                <div class="c-left">
-                    <div class="c-avatar" id="outAvatar">IM</div>
-                </div>
+                <div class="c-left"><div class="c-avatar" id="outAvatar">IM</div></div>
                 <div class="c-right">
                     <div class="c-handle" id="outSource"><i class="fas fa-globe"></i> WEBSITE</div>
                     <div class="c-name" id="outName">MYBRAND</div>
@@ -175,8 +185,14 @@
                     <div class="c-tag" id="outLink">example.com</div>
                 </div>
             </div>
+            <div class="c-qr" id="qrContainer"></div>
         </div>
-        <button class="btn-dl" onclick="downloadCard()"><i class="fas fa-download"></i> Download PNG</button>
+
+        <div class="actions">
+            <button class="btn-dl btn-png" onclick="downloadPNG()"><i class="fas fa-image"></i> PNG Image</button>
+            <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Clickable PDF</button>
+        </div>
+        <p style="margin-top:15px; font-size:12px; color:#666;">PNG for Instagram • PDF for LinkedIn/Email</p>
     </div>
 </div>
 
@@ -184,126 +200,115 @@
     let cardState = {
         name: "MyBrand",
         title: "Official Page",
+        contact: "Contact Info",
         link: "example.com",
-        baseClass: "theme-generic", // Holds the color (Insta, Gold, etc)
+        baseClass: "theme-generic",
         source: "WEBSITE",
-        icon: "fa-globe"
+        icon: "fa-globe",
+        fullUrl: "https://example.com"
     };
 
     // --- ANALYZER ---
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
         if(!urlRaw) return;
+        cardState.fullUrl = urlRaw.startsWith('http') ? urlRaw : 'https://' + urlRaw;
 
         let url = urlRaw.replace(/^https?:\/\//, '').replace('www.', '');
         let parts = url.split('/');
         let domain = parts[0];
         let handle = parts[1] || parts[0];
 
-        let avatarQuery = "";
-        
-        // DEFAULT THEME ASSIGNMENT
+        let newTheme = 'theme-generic'; let newSource = 'WEBSITE'; let newIcon = 'fa-globe';
+        let newName = domain; let newLink = domain; let avatarQuery = `unavatar.io/${domain}`;
+
         if (domain.includes('instagram.com')) {
-            updateBaseTheme('theme-instagram', 'INSTAGRAM', 'fa-instagram');
-            avatarQuery = `unavatar.io/instagram/${handle}`;
-            cardState.name = handle;
-            cardState.link = `@${handle}`;
+            newTheme = 'theme-instagram'; newSource = 'INSTAGRAM'; newIcon = 'fa-instagram';
+            newName = handle; newLink = `@${handle}`; avatarQuery = `unavatar.io/instagram/${handle}`;
         } else if (domain.includes('linkedin.com')) {
-            updateBaseTheme('theme-linkedin', 'LINKEDIN', 'fa-linkedin');
-            avatarQuery = `unavatar.io/${domain}/${parts[2]||''}`;
-            cardState.name = parts[2] || "Pro";
-            cardState.link = `linkedin/${parts[2]||''}`;
+            newTheme = 'theme-linkedin'; newSource = 'LINKEDIN'; newIcon = 'fa-linkedin';
+            newName = parts[2] || "Pro"; newLink = `linkedin/${parts[2]||''}`; avatarQuery = `unavatar.io/${domain}/${parts[2]||''}`;
         } else if (domain.includes('twitter.com') || domain.includes('x.com')) {
-            updateBaseTheme('theme-twitter', 'TWITTER', 'fa-twitter');
-            avatarQuery = `unavatar.io/twitter/${handle}`;
-            cardState.name = `@${handle}`;
-            cardState.link = `x.com/${handle}`;
-        } else {
-            updateBaseTheme('theme-generic', 'WEBSITE', 'fa-globe');
-            avatarQuery = `unavatar.io/${domain}`;
-            cardState.name = domain;
-            cardState.link = domain;
+            newTheme = 'theme-twitter'; newSource = 'TWITTER'; newIcon = 'fa-twitter';
+            newName = `@${handle}`; newLink = `x.com/${handle}`; avatarQuery = `unavatar.io/twitter/${handle}`;
         }
 
+        updateBaseTheme(newTheme, newSource, newIcon);
+        cardState.name = newName; cardState.link = newLink;
         applyImage(`https://${avatarQuery}`);
         document.getElementById('inName').value = cardState.name;
+        
+        if(document.querySelector('input[type="checkbox"]').checked) generateQR();
         renderCard();
     }
 
-    function updateBaseTheme(cssClass, source, icon) {
-        cardState.baseClass = cssClass;
-        if(source) cardState.source = source;
-        if(icon) cardState.icon = icon;
-        
-        document.getElementById('cardTheme').className = `layer-base ${cardState.baseClass}`;
-    }
-
-    // --- THEME & FX CONTROLS ---
-    function setTheme(themeName, btn) {
-        if(themeName === 'default') {
-            // Revert to whatever the link analyzer set
-            document.getElementById('cardTheme').className = `layer-base ${cardState.baseClass}`;
-        } else {
-            document.getElementById('cardTheme').className = `layer-base ${themeName}`;
-        }
-        
-        // UI Logic
-        btn.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-
-    function toggleFx(fxClass, btn) {
-        const layer = fxClass === 'fx-noise' ? document.getElementById('cardTexture') : document.getElementById('cardFinish');
-        
-        if (layer.classList.contains(fxClass)) {
-            layer.classList.remove(fxClass);
-            btn.classList.remove('active');
-        } else {
-            // Remove competing effects if necessary (optional)
-            layer.className = fxClass === 'fx-noise' ? 'layer-texture' : 'layer-finish'; 
-            layer.classList.add(fxClass);
-            btn.classList.add('active');
-        }
-    }
-
-    // --- RENDER ---
+    // --- RENDER & HELPERS ---
     function renderCard() {
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
         const inContact = document.getElementById('inContact').value;
-
         document.getElementById('outName').innerText = inName || cardState.name;
         document.getElementById('outTitle').innerText = inTitle || cardState.title;
         document.getElementById('outContact').innerText = inContact || cardState.contact;
         document.getElementById('outLink').innerText = cardState.link;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
         
-        if(!document.getElementById('outAvatar').querySelector('img')) {
-             document.getElementById('outAvatar').innerText = (inName || cardState.name).substring(0,2).toUpperCase();
+        const displayAvatar = document.getElementById('outAvatar');
+        if(!displayAvatar.querySelector('img') || displayAvatar.querySelector('img').style.display === 'none') {
+             displayAvatar.innerText = (inName || cardState.name).substring(0,2).toUpperCase();
         }
+    }
+
+    function updateBaseTheme(cssClass, source, icon) {
+        cardState.baseClass = cssClass;
+        if(source) cardState.source = source;
+        if(icon) cardState.icon = icon;
+        document.getElementById('cardTheme').className = `layer-base ${cardState.baseClass}`;
     }
 
     function applyImage(url) {
-        const imgHTML = `<img src="${url}" class="c-img" onerror="this.style.display='none'">`;
+        const imgHTML = `<img src="${url}" class="c-img" onerror="this.style.display='none'; this.parentNode.innerText='${cardState.name.substring(0,2).toUpperCase()}'">`;
         document.getElementById('outAvatar').innerHTML = imgHTML;
     }
 
-    function handleFileUpload() {
-        const file = document.getElementById('fileInput').files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) { applyImage(e.target.result); }
-            reader.readAsDataURL(file);
-        }
+    // --- QR CODE ---
+    function toggleQR(checkbox) {
+        const qrBox = document.getElementById('qrContainer');
+        if (checkbox.checked) { qrBox.style.display = 'block'; generateQR(); } 
+        else { qrBox.style.display = 'none'; }
+    }
+    function generateQR() {
+        const qrBox = document.getElementById('qrContainer');
+        qrBox.innerHTML = "";
+        new QRCode(qrBox, {
+            text: cardState.fullUrl,
+            width: 60, height: 60,
+            colorDark : "#000000", colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
     }
 
-    // --- UTILS ---
+    // --- UI CONTROLS ---
+    function setTheme(themeName, btn) {
+        if(themeName === 'default') document.getElementById('cardTheme').className = `layer-base ${cardState.baseClass}`;
+        else document.getElementById('cardTheme').className = `layer-base ${themeName}`;
+        toggleActive(btn);
+    }
+    function toggleFx(fxClass, btn) {
+        const layer = ['fx-noise','fx-carbon','fx-glass','fx-holo','fx-vignette'].includes(fxClass) ? document.getElementById('cardTexture') : document.getElementById('cardFinish');
+        if (layer.classList.contains(fxClass)) { layer.classList.remove(fxClass); btn.classList.remove('active'); }
+        else { layer.className = ['fx-noise','fx-carbon'].includes(fxClass) ? 'layer-texture' : 'layer-finish'; layer.classList.add(fxClass); btn.classList.add('active'); }
+    }
     function setFormat(fmt, btn) {
-        document.getElementById('captureCard').className = document.getElementById('captureCard').className.replace(/format-\w+/, `format-${fmt}`);
+        const card = document.getElementById('captureCard');
+        card.classList.remove('format-landscape', 'format-portrait');
+        card.classList.add(`format-${fmt}`);
         toggleActive(btn);
     }
     function setStyle(stl, btn) {
-        document.getElementById('captureCard').className = document.getElementById('captureCard').className.replace(/style-\w+/, `style-${stl}`);
+        const card = document.getElementById('captureCard');
+        card.classList.remove('style-classic', 'style-modern');
+        card.classList.add(`style-${stl}`);
         toggleActive(btn);
     }
     function toggleActive(btn) {
@@ -311,14 +316,52 @@
         btn.classList.add('active');
     }
 
-    function downloadCard() {
+    // --- EXPORT FUNCTIONS ---
+    function downloadPNG() {
         const card = document.getElementById('captureCard');
         html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true, allowTaint: true }).then(canvas => {
             const link = document.createElement('a');
-            link.download = `PremiumCard_${cardState.name}.png`;
+            link.download = `Card_${cardState.name}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
         });
+    }
+
+    function downloadPDF() {
+        const card = document.getElementById('captureCard');
+        html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(canvas => {
+            const { jsPDF } = window.jspdf;
+            const imgData = canvas.toDataURL('image/png');
+            
+            // Calc orientation
+            const isLandscape = card.classList.contains('format-landscape');
+            const pdf = new jsPDF({
+                orientation: isLandscape ? 'l' : 'p',
+                unit: 'px',
+                format: [canvas.width/3, canvas.height/3] // Match CSS dims
+            });
+
+            // Add Image
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width/3, canvas.height/3);
+            
+            // Add Invisible Link over the whole card
+            pdf.link(0, 0, canvas.width/3, canvas.height/3, { url: cardState.fullUrl });
+
+            pdf.save(`Clickable_Card_${cardState.name}.pdf`);
+        });
+    }
+
+    // DRAG & DROP
+    const dropArea = document.getElementById('dropArea');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, (ev)=>{ev.preventDefault();ev.stopPropagation()}, false));
+    dropArea.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files), false);
+    function handleFiles(files) {
+        const file = files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = function() { applyImage(reader.result); }
+        }
     }
 </script>
 
