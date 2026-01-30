@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Card: Final Stable</title>
+    <title>Magic Card: Final Pro</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -14,50 +14,45 @@
         :root { --bg: #f3f4f6; --surface: #ffffff; --text: #1f2937; --primary: #6366f1; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; height: 100vh; margin: 0; overflow: hidden; color: var(--text); }
 
-        /* LOADING OVERLAY */
+        /* LOADING */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        #loader h2 { color: #333; font-family: sans-serif; }
 
         /* LAYOUT */
         .app-container { display: flex; width: 100%; height: 100%; }
-
-        /* LEFT PANEL */
         .input-panel { width: 440px; background: var(--surface); padding: 30px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; overflow-y: auto; }
-        .brand { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
-        .subtitle { font-size: 13px; color: #6b7280; margin-bottom: 25px; }
-
         .control-section { margin-bottom: 25px; border-bottom: 1px solid #f3f4f6; padding-bottom: 20px; }
         .control-title { font-size: 11px; font-weight: 800; color: #9ca3af; margin-bottom: 10px; text-transform: uppercase; }
+        .sub-label { font-size: 10px; font-weight: 700; color: #6b7280; margin-bottom: 6px; display: block; }
 
         /* INPUTS */
         .smart-input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 13px; box-sizing: border-box; background: #f9fafb; margin-bottom: 10px; }
         .std-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-bottom: 8px; }
-
-        /* STATS */
         .stat-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .emoji-input { width: 40px; text-align: center; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
         .text-input { flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
 
-        /* BUTTONS */
+        /* PRESETS & BUTTONS */
         .preset-bar { display: flex; gap: 5px; margin-bottom: 10px; }
         .preset-btn { font-size: 10px; padding: 4px 8px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 4px; }
         .preset-btn:hover { background: #eff6ff; border-color: var(--primary); }
-
-        .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .texture-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .fx-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
-
+        .option-grid, .texture-grid { display: grid; gap: 8px; margin-bottom: 10px; }
+        .option-grid { grid-template-columns: 1fr 1fr; }
+        .texture-grid { grid-template-columns: 1fr 1fr 1fr; }
+        .fx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .option-btn { padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; cursor: pointer; font-size: 10px; font-weight: 600; color: #4b5563; }
         .option-btn:hover { border-color: var(--primary); }
         .option-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* QR COLOR */
-        .qr-color-controls { display: flex; align-items: center; gap: 10px; margin-top: 10px; background: #f0fdf4; padding: 10px; border-radius: 8px; border: 1px dashed #4ade80; }
+        /* QR CONTROLS */
+        .qr-control-box { background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 15px; }
+        .qr-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .slider-container { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #666; }
+        input[type=range] { width: 100px; accent-color: var(--primary); }
         .color-input { width: 24px; height: 24px; border: none; cursor: pointer; background: none; padding: 0; }
 
-        /* RIGHT PANEL */
+        /* PREVIEW AREA */
         .preview-panel { flex: 1; background: #e5e7eb; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-
+        
         /* CARD */
         .card-wrapper { position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.2); overflow: hidden; display: flex; transition: 0.3s; }
         .format-landscape { width: 480px; height: 280px; border-radius: 24px; }
@@ -85,7 +80,7 @@
         .fx-carbon { background: radial-gradient(black 15%, transparent 16%) 0 0, radial-gradient(black 15%, transparent 16%) 8px 8px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 0 1px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 8px 9px; background-size: 16px 16px; opacity: 0.2; }
         .fx-vignette { background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.6) 100%); }
 
-        /* QR */
+        /* QR CODE */
         .c-qr { 
             position: absolute; 
             bottom: 20px; right: 20px;
@@ -97,10 +92,10 @@
             z-index: 50; 
             line-height: 0;
         }
-        /* Classic Landscape Override */
+        /* Classic Landscape Position Override */
         .format-landscape.style-classic .c-qr { bottom: 20px; right: 20px; top: auto; }
 
-        /* CONTENT */
+        /* CONTENT STYLES */
         .style-classic .c-left { width: 35%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.2); }
         .format-portrait.style-classic .c-left { height: 35%; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.2); border-right: none; }
         .style-classic .c-right { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: center; color: white; }
@@ -111,44 +106,42 @@
 
         .c-img { width: 100%; height: 100%; object-fit: cover; }
         .c-handle { font-size: 11px; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .c-name { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .c-name { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
-        .c-stats-row { display: flex; gap: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.15); padding: 8px 15px; border-radius: 12px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
+        /* SEPARATE TITLE ROW */
+        .c-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 500; opacity: 0.9; }
+        
+        /* STATS ROW */
+        .c-stats-row { display: flex; gap: 15px; margin-bottom: 12px; background: rgba(255,255,255,0.15); padding: 8px 15px; border-radius: 12px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); width: fit-content; }
+        .style-modern .c-stats-row { margin: 0 auto 12px auto; }
         .c-stat-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
         .c-stat-emoji { font-size: 14px; }
 
+        /* CONTACT ROW */
         .c-info-row { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 8px; font-weight: 500; }
-        .c-tag { display: inline-block; padding: 5px 12px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+        .c-tag { display: inline-block; padding: 5px 12px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
 
-        /* DOWNLOAD BTNS */
-        .actions { margin-top: 20px; display: flex; gap: 10px; }
-        .btn-dl { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-png { background: #1f2937; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
-        .btn-dl:hover { transform: translateY(-2px); opacity: 0.9; }
-
         .drop-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; background: #f9fafb; cursor: pointer; margin-top: 10px; }
         .hidden-file { display: none; }
     </style>
 </head>
 <body onload="document.getElementById('loader').style.display='none'">
 
-<div id="loader">
-    <h2>Loading Card Studio...</h2>
-    <p>If this takes longer than 3 seconds, check your internet.</p>
-</div>
+<div id="loader"><h2>Loading...</h2></div>
 
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Drag & Drop • Custom Stats • Gradient QR</div>
+        <div class="subtitle">Drag & Drop • Adjustable QR • Stats</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
             <input type="text" class="smart-input" id="linkInput" placeholder="Paste link..." oninput="analyzeLink()">
             <div class="drop-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <span>Drag & Drop or Paste (Ctrl+V)</span>
+                <i class="fas fa-cloud-upload-alt"></i> <span>Drag & Drop or Paste</span>
                 <input type="file" id="fileInput" class="hidden-file" accept="image/*" onchange="handleFileSelect(this)">
             </div>
         </div>
@@ -183,7 +176,7 @@
         <div class="control-section">
             <div class="control-title">4. Stats & Details</div>
             <input type="text" class="std-input" id="inName" placeholder="Name" oninput="renderCard()">
-            <input type="text" class="std-input" id="inTitle" placeholder="Subtitle" oninput="renderCard()">
+            <input type="text" class="std-input" id="inTitle" placeholder="Subtitle (e.g. Official Page)" oninput="renderCard()">
             
             <div class="sub-label" style="margin-top:10px;">SOCIAL STATS</div>
             <div class="preset-bar">
@@ -192,28 +185,23 @@
                 <button class="preset-btn" onclick="setEmojis('🐦','🔁','❤️')">Twitter</button>
             </div>
             
-            <div class="stat-input-group">
-                <input type="text" class="emoji-input" id="inEmoji1" value="📸" oninput="renderCard()">
-                <input type="text" class="text-input" id="inStat1" placeholder="Stat 1" oninput="renderCard()">
-            </div>
-            <div class="stat-input-group">
-                <input type="text" class="emoji-input" id="inEmoji2" value="❤️" oninput="renderCard()">
-                <input type="text" class="text-input" id="inStat2" placeholder="Stat 2" oninput="renderCard()">
-            </div>
-            <div class="stat-input-group">
-                <input type="text" class="emoji-input" id="inEmoji3" value="👤" oninput="renderCard()">
-                <input type="text" class="text-input" id="inStat3" placeholder="Stat 3" oninput="renderCard()">
-            </div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji1" value="📸" oninput="renderCard()"><input type="text" class="text-input" id="inStat1" placeholder="Stat 1" oninput="renderCard()"></div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji2" value="❤️" oninput="renderCard()"><input type="text" class="text-input" id="inStat2" placeholder="Stat 2" oninput="renderCard()"></div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji3" value="👤" oninput="renderCard()"><input type="text" class="text-input" id="inStat3" placeholder="Stat 3" oninput="renderCard()"></div>
 
-            <div style="margin-top:15px; padding:10px; border:1px solid #e5e7eb; border-radius:8px; background:#f9fafb;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="qr-control-box">
+                <div class="qr-row">
                     <span style="font-size:11px; font-weight:700; color:#4b5563;">SHOW QR</span>
                     <input type="checkbox" onchange="toggleQR(this)" checked>
                 </div>
-                <div class="qr-color-controls">
-                    <span style="font-size:10px; color:#666;">Gradient:</span>
+                <div class="slider-container">
+                    <span>Size:</span>
+                    <input type="range" id="qrSizeInput" min="20" max="100" value="36" oninput="generateQR()">
+                </div>
+                <div class="slider-container" style="margin-top:8px;">
+                    <span>Color:</span>
                     <input type="color" id="qrColor1" value="#000000" class="color-input" onchange="generateQR()">
-                    <span style="font-size:10px;">to</span>
+                    <span>to</span>
                     <input type="color" id="qrColor2" value="#4b5563" class="color-input" onchange="generateQR()">
                 </div>
             </div>
@@ -232,22 +220,23 @@
                     <div class="c-handle" id="outSource"><i class="fas fa-globe"></i> WEBSITE</div>
                     <div class="c-name" id="outName">MYBRAND</div>
                     
+                    <div class="c-title-row" id="outTitleRow"><i class="fas fa-briefcase"></i> <span id="outTitle">Official Page</span></div>
+
                     <div class="c-stats-row" id="outStats">
                         <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji1">📸</span> <span id="valStat1">418</span></div>
                         <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji2">❤️</span> <span id="valStat2">3,755</span></div>
                         <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji3">👤</span> <span id="valStat3">0</span></div>
                     </div>
 
-                    <div id="outInfoContainer" style="display:none;">
-                        <div class="c-info-row"><i class="fas fa-briefcase"></i> <span id="outTitle">Official Page</span></div>
-                        <div class="c-tag" id="outLink">example.com</div>
-                    </div>
+                    <div id="outContactRow" class="c-info-row" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact</span></div>
+                    
+                    <div class="c-tag" id="outLink">example.com</div>
                 </div>
             </div>
             <div class="c-qr" id="qrContainer"></div>
         </div>
 
-        <div class="actions">
+        <div class="actions" style="display:flex; gap:10px;">
             <button class="btn-dl btn-png" onclick="downloadPNG()"><i class="fas fa-image"></i> PNG</button>
             <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
         </div>
@@ -255,7 +244,7 @@
 </div>
 
 <script>
-    let cardState = { name: "MyBrand", title: "Official Page", link: "example.com", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com" };
+    let cardState = { name: "MyBrand", link: "example.com", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com" };
 
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
@@ -267,9 +256,9 @@
         let handle = parts[1] || parts[0];
 
         let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
-        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; handle=handle.split('?')[0]; }
-        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; }
-        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; }
+        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; handle=handle.split('?')[0]; setEmojis('📸','❤️','👤'); }
+        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); }
+        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
 
         updateBaseTheme(newTheme, newSource, newIcon);
         cardState.name = handle; 
@@ -280,18 +269,32 @@
     }
 
     function renderCard() {
-        document.getElementById('outName').innerText = document.getElementById('inName').value || cardState.name;
-        document.getElementById('outTitle').innerText = document.getElementById('inTitle').value || "Official Page";
-        document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
+        const inName = document.getElementById('inName').value;
+        const inTitle = document.getElementById('inTitle').value;
         
-        // Stats
+        // Values
         const s1 = document.getElementById('inStat1').value;
         const s2 = document.getElementById('inStat2').value;
         const s3 = document.getElementById('inStat3').value;
+
+        // Render
+        document.getElementById('outName').innerText = inName || cardState.name;
+        document.getElementById('outLink').innerText = cardState.link;
+        document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
         
+        // SUBTITLE LOGIC: Always show if exists
+        const titleRow = document.getElementById('outTitleRow');
+        if(inTitle) {
+            titleRow.style.display = 'flex';
+            document.getElementById('outTitle').innerText = inTitle;
+        } else {
+            titleRow.style.display = 'none';
+        }
+
+        // STATS LOGIC: Show if any stat exists
+        const statsRow = document.getElementById('outStats');
         if(s1 || s2 || s3) {
-            document.getElementById('outStats').style.display = 'flex';
-            document.getElementById('outInfoContainer').style.display = 'none';
+            statsRow.style.display = 'flex';
             document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value;
             document.getElementById('valStat1').innerText = s1 || "-";
             document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value;
@@ -299,8 +302,13 @@
             document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value;
             document.getElementById('valStat3').innerText = s3 || "-";
         } else {
-            document.getElementById('outStats').style.display = 'none';
-            document.getElementById('outInfoContainer').style.display = 'block';
+            statsRow.style.display = 'none';
+        }
+
+        // Fallback for avatar
+        const displayAvatar = document.getElementById('outAvatar');
+        if(!displayAvatar.querySelector('img') || displayAvatar.querySelector('img').style.display === 'none') {
+             displayAvatar.innerText = (inName || cardState.name).substring(0,2).toUpperCase();
         }
     }
 
@@ -311,10 +319,13 @@
         qrBox.style.display = 'block';
         qrBox.innerHTML = "";
         
+        // Dynamic Size from Slider
+        const sizeVal = document.getElementById('qrSizeInput').value;
+        
         const tempDiv = document.createElement('div');
         new QRCode(tempDiv, {
             text: cardState.fullUrl,
-            width: 36, height: 36, // MICRO SIZE
+            width: sizeVal, height: sizeVal,
             colorDark : "#000000", colorLight : "transparent",
             correctLevel : QRCode.CorrectLevel.L
         });
@@ -323,12 +334,12 @@
             const canvas = tempDiv.querySelector('canvas') || tempDiv.querySelector('img');
             if(canvas && canvas.getContext) {
                 const ctx = canvas.getContext('2d');
-                const gradient = ctx.createLinearGradient(0,0,36,36);
+                const gradient = ctx.createLinearGradient(0,0,sizeVal,sizeVal);
                 gradient.addColorStop(0, document.getElementById('qrColor1').value);
                 gradient.addColorStop(1, document.getElementById('qrColor2').value);
                 ctx.globalCompositeOperation = 'source-in';
                 ctx.fillStyle = gradient;
-                ctx.fillRect(0,0,36,36);
+                ctx.fillRect(0,0,sizeVal,sizeVal);
                 qrBox.appendChild(canvas);
             } else if(canvas) {
                 qrBox.appendChild(canvas);
@@ -336,7 +347,7 @@
         }, 50);
     }
 
-    // --- UTILS ---
+    // UTILS
     function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     function applyImage(url) { document.getElementById('outAvatar').innerHTML = `<img src="${url}" class="c-img" onerror="this.parentNode.innerText='IM'">`; }
@@ -352,22 +363,9 @@
     function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
     function toggleQR(cb) { generateQR(); }
 
-    // --- DOWNLOAD ---
-    function downloadPNG() {
-        html2canvas(document.getElementById('captureCard'), { scale: 3, backgroundColor: null, useCORS: true }).then(c => {
-            const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click();
-        });
-    }
-    function downloadPDF() {
-        html2canvas(document.getElementById('captureCard'), { scale: 3, backgroundColor: null, useCORS: true }).then(c => {
-            const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] });
-            pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3);
-            pdf.link(0, 0, c.width/3, c.height/3, { url: cardState.fullUrl });
-            pdf.save(`Card_${cardState.name}.pdf`);
-        });
-    }
+    function downloadPNG() { html2canvas(document.getElementById('captureCard'), { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); }); }
+    function downloadPDF() { html2canvas(document.getElementById('captureCard'), { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] }); pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3); pdf.link(0, 0, c.width/3, c.height/3, { url: cardState.fullUrl }); pdf.save(`Card_${cardState.name}.pdf`); }); }
 
-    // --- FILES ---
     const dropArea = document.getElementById('dropArea');
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false));
     dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
