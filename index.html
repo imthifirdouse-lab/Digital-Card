@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Mobile Fit</title>
+    <title>Magic Card: Color Engine</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,7 +12,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --bg: #f3f4f6; --surface: #ffffff; --text: #1f2937; --primary: #6366f1; }
-        * { box-sizing: border-box; } /* GLOBAL SAFE BOXING */
+        * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; height: 100vh; margin: 0; overflow: hidden; color: var(--text); }
 
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; display: flex; justify-content: center; align-items: center; }
@@ -22,12 +22,7 @@
         @media (max-width: 800px) {
             .app-container { flex-direction: column; overflow-y: auto; }
             .input-panel { width: 100%; height: auto; padding: 20px; }
-            .preview-panel { 
-                min-height: 500px; 
-                padding: 40px 20px; /* More breathing room */
-                justify-content: flex-start; /* Prevent vertical centering overlapping on small screens */
-                overflow-x: hidden; /* Prevent scrollbar */
-            }
+            .preview-panel { min-height: 500px; padding: 40px 20px; justify-content: flex-start; overflow-x: hidden; }
             body { overflow: auto; }
         }
 
@@ -42,6 +37,11 @@
         .emoji-input { width: 40px; text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
         .text-input { flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
 
+        /* COLOR PICKERS */
+        .color-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .color-input { width: 40px; height: 40px; border: none; border-radius: 8px; cursor: pointer; padding: 0; background: none; }
+        .color-label { font-size: 11px; font-weight: 600; color: #666; }
+
         /* PRESETS */
         .preset-bar { display: flex; gap: 5px; margin-bottom: 10px; }
         .preset-btn { font-size: 10px; padding: 4px 8px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 4px; }
@@ -55,45 +55,24 @@
         /* PREVIEW AREA */
         .preview-panel { flex: 1; background: #e5e7eb; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; perspective: 1200px; }
         
-        /* CARD - FLUID RESPONSIVE LOGIC */
+        /* CARD */
         .card-wrapper { 
-            position: relative; 
-            background: white; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3); 
-            overflow: hidden; 
-            display: flex; 
-            transition: transform 0.1s cubic-bezier(0.1, 0.1, 0.1, 1); 
-            transform-style: preserve-3d; 
-            border-radius: 24px; 
-            /* Desktop Default */
-            width: 480px; 
-            height: 280px;
+            position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.3); 
+            overflow: hidden; display: flex; transition: transform 0.1s cubic-bezier(0.1, 0.1, 0.1, 1); 
+            transform-style: preserve-3d; border-radius: 24px; 
+            width: 480px; height: 280px;
         }
         
-        /* Mobile Scaling: Use Aspect Ratio + Max Width % */
         @media (max-width: 600px) {
-            .card-wrapper.format-landscape { 
-                width: 85vw; /* Never wider than 85% of screen */
-                max-width: 400px; 
-                height: auto; 
-                aspect-ratio: 1.71; /* 480/280 */
-            }
-            .card-wrapper.format-portrait { 
-                width: 80vw; 
-                max-width: 320px; 
-                height: auto; 
-                aspect-ratio: 0.56; /* 320/568 */
-                flex-direction: column;
-            }
-            
-            /* Text Scaling for Mobile to prevent overflow inside card */
+            .card-wrapper.format-landscape { width: 85vw; max-width: 400px; height: auto; aspect-ratio: 1.71; }
+            .card-wrapper.format-portrait { width: 80vw; max-width: 320px; height: auto; aspect-ratio: 0.56; flex-direction: column; }
             .c-name { font-size: 22px !important; }
             .c-handle { font-size: 10px !important; }
             .c-stat-item { font-size: 10px !important; }
         }
 
         .layer-base, .layer-texture, .layer-finish { position: absolute; top:0; left:0; width:100%; height:100%; }
-        .layer-base { z-index: 1; }
+        .layer-base { z-index: 1; transition: background 0.3s; }
         .layer-texture { z-index: 2; mix-blend-mode: overlay; pointer-events: none; }
         .layer-finish { z-index: 3; pointer-events: none; }
         .layer-glare { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 20; pointer-events: none; mix-blend-mode: overlay; opacity: 0; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.6) 0%, transparent 60%); transition: opacity 0.1s; }
@@ -124,10 +103,9 @@
             width: auto; height: auto;
         }
         .c-qr img, .c-qr canvas { display: block; width: var(--qr-size, 50px); height: var(--qr-size, 50px); }
-        
+        .format-landscape.style-classic .c-qr { bottom: 20px; right: 20px; top: auto; }
         .format-portrait .c-qr { bottom: 20px; right: 20px; }
         
-        /* Mobile QR Scaling */
         @media (max-width: 600px) {
             .c-qr img, .c-qr canvas { width: calc(var(--qr-size, 50px) * 0.8) !important; height: calc(var(--qr-size, 50px) * 0.8) !important; }
         }
@@ -146,9 +124,16 @@
         .c-name { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); white-space: nowrap; }
         
         .c-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; font-weight: 500; opacity: 0.9; }
-        .c-stats-row { display: flex; gap: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); width: fit-content; }
+        
+        .c-stats-row { display: flex; gap: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); width: fit-content; max-width: 100%; }
         .style-modern .c-stats-row { margin: 0 auto 12px auto; }
-        .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; }
+        .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        
+        @media (max-width: 600px) {
+            .c-stats-row { gap: 4px !important; padding: 4px 8px !important; width: 95% !important; justify-content: center; }
+            .c-stat-item { font-size: 9px !important; }
+        }
+
         .c-stat-emoji { font-size: 13px; }
         .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
         
@@ -158,7 +143,6 @@
         .btn-png { background: #1f2937; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
         .btn-html { background: #10b981; color: white; }
-        
         .btn-vcard { background: #2563eb; color: white; margin-left: auto; } 
 
         .drop-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; background: #f9fafb; cursor: pointer; margin-top: 10px; }
@@ -190,7 +174,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">v18.0 (Fluid Mobile)</div>
+        <div class="subtitle">v19.0 (Color Engine)</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -223,7 +207,23 @@
         </div>
 
         <div class="control-section">
-            <div class="control-title">3. Finishes</div>
+            <div class="control-title">3. Finishes & Colors</div>
+            
+            <div style="margin-bottom: 15px;">
+                <div class="sub-label">CUSTOM GRADIENT</div>
+                <div class="color-group">
+                    <div>
+                        <input type="color" id="col1" class="color-input" value="#1f2937" oninput="setCustomTheme()">
+                        <div class="color-label">Start</div>
+                    </div>
+                    <div>
+                        <input type="color" id="col2" class="color-input" value="#111827" oninput="setCustomTheme()">
+                        <div class="color-label">End</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sub-label">PRESETS</div>
             <div class="texture-grid">
                 <button class="option-btn active" onclick="setTheme('default', this)">Base</button>
                 <button class="option-btn" onclick="setTheme('theme-gold', this)">Gold</button>
@@ -311,7 +311,7 @@
 <div class="tap-hint" id="tapHint">👆 Tap card to visit profile</div>
 
 <script>
-    let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com", phone: "" };
+    let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com", phone: "", customBg: null };
     let isFreeMode = false;
     let uploadedMediaData = null; 
     let userInteracting = false; 
@@ -319,40 +319,67 @@
 
     function initApp() {
         document.getElementById('loader').style.display='none';
-        
         if(document.getElementById('linkInput')) {
-            // EDITOR MODE
             generateQR(); 
             initDrag();
         } else {
-            // DOWNLOADED LIVE CARD MODE
+            // DOWNLOADED MODE
             document.body.addEventListener('click', enableMotion);
-            
-            // 1. CLICK TO VISIT (Smart New Tab)
             document.getElementById('captureCard').style.cursor = 'pointer';
             document.getElementById('captureCard').onclick = function() {
                 if(cardState.fullUrl) window.open(cardState.fullUrl, '_blank');
             };
-
             setTimeout(() => { document.getElementById('tapHint').style.opacity = '1'; }, 1000);
-            
             const fab = document.getElementById('fabContact');
             if(fab) fab.style.display = 'block';
+            
+            // Apply Custom Background if it exists
+            if(cardState.customBg) {
+                document.getElementById('cardTheme').style.background = cardState.customBg;
+                document.getElementById('cardTheme').className = 'layer-base'; // clear preset
+            }
         }
-        
         init3D(); 
         requestAnimationFrame(autoPlayLoop); 
     }
 
-    // --- VCARD (STRICT CLEAN) ---
+    // --- COLOR ENGINE ---
+    function setCustomTheme() {
+        const c1 = document.getElementById('col1').value;
+        const c2 = document.getElementById('col2').value;
+        const bg = `linear-gradient(135deg, ${c1}, ${c2})`;
+        
+        // Apply
+        const themeEl = document.getElementById('cardTheme');
+        themeEl.className = 'layer-base'; // Remove presets
+        themeEl.style.background = bg;
+        
+        // Update State
+        cardState.customBg = bg;
+        
+        // UI Feedback: Deselect preset buttons
+        document.querySelectorAll('.texture-grid .option-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    function setTheme(t, b) { 
+        // Reset Custom BG
+        document.getElementById('cardTheme').style.background = ''; 
+        cardState.customBg = null;
+        
+        document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; 
+        
+        // UI
+        b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); 
+        b.classList.add('active'); 
+    }
+
+    // --- VCARD ---
     function downloadVCard() {
         const name = cardState.name || "Contact";
         const phone = cardState.phone || "";
-        
         let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nN:;${name};;;`;
         if(phone) vcard += `\nTEL;TYPE=CELL:${phone}`;
         vcard += `\nEND:VCARD`;
-
         const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `contact_${name}.vcf`; a.click();
     }
@@ -405,9 +432,24 @@
         if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; setEmojis('📸','❤️','👤'); }
         else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); if(parts[1] === 'in' && parts[2]) handle = parts[2].split('?')[0]; }
         else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
-        updateBaseTheme(newTheme, newSource, newIcon);
+        
+        // Only update theme if user hasn't picked a custom one
+        if(!cardState.customBg) {
+            updateBaseTheme(newTheme, newSource, newIcon);
+        } else {
+            // Just update icon/source, keep custom BG
+            cardState.baseClass = newTheme; 
+            cardState.source = newSource; 
+            cardState.icon = newIcon; 
+        }
+        
         if(handle) { cardState.name = handle; document.getElementById('inName').value = handle; }
         generateQR(); renderCard();
+    }
+
+    function updateBaseTheme(c, s, i) { 
+        cardState.baseClass = c; cardState.source = s; cardState.icon = i; 
+        document.getElementById('cardTheme').className = `layer-base ${c}`; 
     }
 
     function renderCard() {
@@ -493,9 +535,7 @@
     function toggleFx(f, b) { const l = ['fx-noise','fx-carbon','fx-glass','fx-holo','fx-vignette'].includes(f) ? 'cardTexture' : 'cardFinish'; const el = document.getElementById(l); if(el.classList.contains(f)) { el.classList.remove(f); b.classList.remove('active'); } else { el.className = l === 'cardTexture' ? 'layer-texture' : 'layer-finish'; el.classList.add(f); b.classList.add('active'); } }
     function setFormat(f, b) { document.getElementById('captureCard').className = `card-wrapper format-${f} style-${document.querySelector('.style-modern.active') ? 'modern' : 'classic'}`; toggleActive(b); }
     function setStyle(s, b) { document.getElementById('captureCard').className = `card-wrapper format-${document.querySelector('.option-btn[onclick*="format-landscape"].active') ? 'landscape' : 'portrait'} style-${s}`; toggleActive(b); }
-    function setTheme(t, b) { document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; toggleActive(b); }
     function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
-    function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     
     async function prepareVideoForCapture(card) {
