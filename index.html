@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Metadata Only</title>
+    <title>Magic Card: Stable Core v6</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -39,6 +39,7 @@
         /* PRESETS */
         .preset-bar { display: flex; gap: 5px; margin-bottom: 10px; }
         .preset-btn { font-size: 10px; padding: 4px 8px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 4px; }
+        .preset-btn:hover { background: #eff6ff; border-color: var(--primary); }
         .option-grid, .texture-grid { display: grid; gap: 8px; margin-bottom: 10px; }
         .option-grid { grid-template-columns: 1fr 1fr; }
         .texture-grid { grid-template-columns: 1fr 1fr 1fr; }
@@ -51,7 +52,7 @@
         .preview-panel { flex: 1; background: #e5e7eb; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; perspective: 1200px; }
         
         /* CARD */
-        .card-wrapper { position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.3); overflow: hidden; display: flex; transition: width 0.3s, height 0.3s; transform-style: preserve-3d; border-radius: 24px; }
+        .card-wrapper { position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.3); overflow: hidden; display: flex; transition: transform 0.1s; transform-style: preserve-3d; border-radius: 24px; }
         .format-landscape { width: 480px; height: 280px; }
         .format-portrait { width: 320px; height: 568px; flex-direction: column; }
 
@@ -93,7 +94,7 @@
         .c-qr img, .c-qr canvas { display: block; width: var(--qr-size, 50px); height: var(--qr-size, 50px); }
         .format-landscape.style-classic .c-qr { bottom: 20px; right: 20px; top: auto; }
 
-        /* CONTENT */
+        /* CONTENT STYLES */
         .style-classic .c-left { width: 35%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.2); }
         .format-portrait.style-classic .c-left { height: 35%; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.2); border-right: none; }
         .style-classic .c-right { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: center; color: white; }
@@ -112,8 +113,7 @@
         .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; }
         .c-stat-emoji { font-size: 13px; }
         .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
-        .c-tag { display: none; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
-
+        
         .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-png { background: #1f2937; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
@@ -140,7 +140,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Metadata Only v5.0</div>
+        <div class="subtitle">Stable Suite v6.0</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -237,7 +237,6 @@
                     </div>
 
                     <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact Info</span></div>
-                    <div class="c-tag" id="outLink"></div>
                 </div>
             </div>
             <div class="c-qr drag-el" id="qrContainer"></div>
@@ -262,79 +261,133 @@
         init3D(); 
     }
 
-    // --- QR ---
+    // --- QR ENGINE ---
     function generateQR() {
         const qrBox = document.getElementById('qrContainer');
         const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked;
         if (!isChecked) { qrBox.style.display = 'none'; return; }
-        qrBox.style.display = 'flex'; qrBox.innerHTML = "";
-        new QRCode(qrBox, { text: cardState.fullUrl, width: 256, height: 256, colorDark : "#000000", colorLight : "rgba(255,255,255,0)", correctLevel : QRCode.CorrectLevel.M });
+        
+        qrBox.style.display = 'flex'; 
+        qrBox.innerHTML = "";
+        
+        new QRCode(qrBox, { 
+            text: cardState.fullUrl, 
+            width: 256, 
+            height: 256, 
+            colorDark : "#000000", 
+            colorLight : "rgba(255,255,255,0)", 
+            correctLevel : QRCode.CorrectLevel.M 
+        });
         resizeQR(); 
     }
-    function resizeQR() { const size = document.getElementById('qrSize').value; document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px'); }
 
-    // --- DOWNLOAD ---
-    function downloadPNG() { 
-        const card = document.getElementById('captureCard'); 
-        const glare = document.getElementById('cardGlare');
-        const prevTransform = card.style.transform;
-        card.style.transform = `perspective(1000px) rotateX(-5deg) rotateY(5deg)`;
-        glare.style.opacity = '0.4'; glare.style.background = `radial-gradient(circle at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 60%)`;
-        setTimeout(() => { html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); card.style.transform = prevTransform; glare.style.opacity = '0'; }); }, 100);
-    }
-    function downloadPDF() { 
-        const card = document.getElementById('captureCard'); 
-        const prevTransform = card.style.transform;
-        card.style.transform = "none";
-        setTimeout(() => { html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] }); pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3); const pdfW = pdf.internal.pageSize.getWidth(); const pdfH = pdf.internal.pageSize.getHeight(); pdf.link(0, 0, pdfW, pdfH, { url: cardState.fullUrl }); pdf.save(`Card_${cardState.name}.pdf`); card.style.transform = prevTransform; }); }, 100);
+    function resizeQR() {
+        const size = document.getElementById('qrSize').value;
+        document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px');
     }
 
-    // --- CONTENT LOGIC (METADATA ONLY) ---
+    // --- ANALYZE LINK (ROBUST) ---
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
         if(!urlRaw) return;
         
+        // 1. Sanitize URL
         if (!urlRaw.startsWith('http')) { cardState.fullUrl = 'https://' + urlRaw; } else { cardState.fullUrl = urlRaw; }
         
-        let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace('www.', '');
+        let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace(/^www\./, '');
         let parts = displayUrl.split('/');
-        let domain = parts[0];
-        let handle = parts[1] || parts[0];
+        let domain = parts[0].toLowerCase();
+        let handle = parts[1] ? parts[1].split('?')[0] : '';
 
-        if(domain.includes('instagram.com')) { handle = handle.split('?')[0]; }
-
+        // 2. Identify Platform
         let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
+        let emojis = null;
 
-        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; setEmojis('📸','❤️','👤'); }
-        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); }
-        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
+        if (domain.includes('instagram.com')) { 
+            newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; 
+            emojis = ['📸','❤️','👤']; 
+        }
+        else if (domain.includes('linkedin.com')) { 
+            newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; 
+            emojis = ['🤝','👥','📄']; 
+            // LinkedIn /in/ handle
+            if(parts[1] === 'in' && parts[2]) handle = parts[2].split('?')[0];
+        }
+        else if (domain.includes('twitter.com') || domain.includes('x.com')) { 
+            newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; 
+            emojis = ['🐦','🔁','❤️']; 
+        }
 
+        // 3. Update State
         updateBaseTheme(newTheme, newSource, newIcon);
-        cardState.name = handle;
-        document.getElementById('inName').value = handle;
+        if(handle) {
+            cardState.name = handle;
+            document.getElementById('inName').value = handle;
+        }
         
-        // NO IMAGE FETCHING HERE - JUST TEXT & THEME
+        if(emojis) setEmojis(emojis[0], emojis[1], emojis[2]);
+
+        // 4. Update Visuals
         generateQR();
         renderCard();
+        // NOTE: No image fetching. Avatar stays as Initials until manual upload.
     }
 
-    // --- RENDER & DRAG ---
+    // --- RENDER CARD ---
     function renderCard() {
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
         const inContact = document.getElementById('inContact').value;
         document.getElementById('outName').innerText = inName || cardState.name;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
-        document.getElementById('outLink').style.display = 'none'; 
+        
         const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
         const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
         const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
         if(s1 || s2 || s3) { sr.style.display = 'flex'; document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value; document.getElementById('valStat1').innerText = s1 || "-"; document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value; document.getElementById('valStat2').innerText = s2 || "-"; document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value; document.getElementById('valStat3').innerText = s3 || "-"; } else { sr.style.display = 'none'; }
-        // Fallback to Initials
+        
+        // Fallback Avatar Logic
         const av = document.getElementById('outAvatar'); 
-        if(!av.querySelector('img') || av.querySelector('img').style.display==='none') { av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); }
+        if(!av.querySelector('img') || av.querySelector('img').style.display==='none') { 
+            av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); 
+        }
+    }
+
+    // --- DOWNLOAD ---
+    function downloadPNG() { 
+        const card = document.getElementById('captureCard'); 
+        const glare = document.getElementById('cardGlare');
+        const prevTransform = card.style.transform;
+        
+        // Force Hero Tilt
+        card.style.transform = `perspective(1000px) rotateX(-5deg) rotateY(5deg)`;
+        glare.style.opacity = '0.4';
+        glare.style.background = `radial-gradient(circle at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 60%)`;
+
+        setTimeout(() => {
+            html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
+                const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); 
+                card.style.transform = prevTransform; glare.style.opacity = '0';
+            }); 
+        }, 100);
     }
     
+    function downloadPDF() { 
+        const card = document.getElementById('captureCard'); 
+        const prevTransform = card.style.transform;
+        card.style.transform = "none";
+        setTimeout(() => {
+            html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
+                const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] });
+                pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3);
+                pdf.link(0, 0, c.width/3, c.height/3, { url: cardState.fullUrl });
+                pdf.save(`Card_${cardState.name}.pdf`); 
+                card.style.transform = prevTransform; 
+            }); 
+        }, 100);
+    }
+
+    // --- UTILS ---
     function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
     function resetLayout() { const c=document.getElementById('captureCard'); const a=document.getElementById('dragAvatar'); const t=document.getElementById('dragText'); const q=document.getElementById('qrContainer'); c.classList.remove('custom-layout'); a.style=""; t.style=""; q.style=""; q.style.bottom='20px'; q.style.right='20px'; }
     function initDrag() { const els=[document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')]; let activeEl=null; let startX=0; let startY=0; let initLeft=0; let initTop=0; els.forEach(el=>{el.addEventListener('mousedown',(e)=>{if(!isFreeMode)return;activeEl=el;e.preventDefault();startX=e.clientX;startY=e.clientY;initLeft=activeEl.offsetLeft;initTop=activeEl.offsetTop;if(getComputedStyle(activeEl).position!=='absolute'){activeEl.style.position='absolute';activeEl.style.left=initLeft+'px';activeEl.style.top=initTop+'px';activeEl.style.bottom='auto';activeEl.style.right='auto';}});}); document.addEventListener('mousemove',(e)=>{if(!activeEl)return;const dx=e.clientX-startX;const dy=e.clientY-startY;activeEl.style.left=(initLeft+dx)+'px';activeEl.style.top=(initTop+dy)+'px';}); document.addEventListener('mouseup',()=>{activeEl=null;}); }
@@ -348,15 +401,15 @@
     function setTheme(t, b) { document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; toggleActive(b); }
     function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
+    function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     
-    // FILE HANDLING
-    const dropArea = document.getElementById('dropArea'); ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false)); dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image')) applyImageFromBlob(i.getAsFile()); }); });
-    function handleFileSelect(i) { handleFiles(i.files); } 
-    function handleFiles(f) { if(f[0]) applyImageFromBlob(f[0]); }
+    // IMAGE HANDLING (FIXED)
     function applyImageFromBlob(blob) {
         const url = URL.createObjectURL(blob);
         document.getElementById('outAvatar').innerHTML = `<img src="${url}" class="c-img">`;
     }
+    const dropArea = document.getElementById('dropArea'); ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false)); dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image')) applyImageFromBlob(i.getAsFile()); }); });
+    function handleFileSelect(i) { handleFiles(i.files); } function handleFiles(f) { if(f[0]) applyImageFromBlob(f[0]); }
 </script>
 </body>
 </html>
