@@ -138,4 +138,351 @@
         .reset-btn { font-size: 10px; color: #d32f2f; cursor: pointer; text-decoration: underline; background: none; border: none; }
 
         /* CUSTOM LAYOUT STATE */
-        .
+        .custom-layout .c-content { display: block; }
+        .custom-layout .c-left { position: absolute; top: 30px; left: 30px; border: none !important; width: auto !important; height: auto !important; }
+        .custom-layout .c-right { position: absolute; top: 30px; left: 150px; width: auto !important; padding: 0 !important; }
+        .custom-layout .c-qr { position: absolute; } 
+
+        .drag-active .drag-el { cursor: move; outline: 1px dashed rgba(255,255,255,0.5); user-select: none; }
+        .drag-active .drag-el:hover { outline: 2px solid #6366f1; }
+        
+        .tilt-btn { background: #2563eb; color: white; font-weight: bold; width: 100%; border: none; padding: 10px; border-radius: 8px; margin-top: 8px; cursor: pointer; }
+    </style>
+</head>
+<body onload="initApp()">
+
+<div id="loader"><h2>Loading...</h2></div>
+
+<div class="app-container">
+    <div class="input-panel">
+        <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
+        <div class="subtitle">Complete Suite v3.4</div>
+
+        <div class="control-section">
+            <div class="control-title">1. Content</div>
+            <input type="text" class="smart-input" id="linkInput" placeholder="Paste link..." oninput="analyzeLink()">
+            <div class="drop-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i> <span>Drag & Drop or Paste</span>
+                <input type="file" id="fileInput" class="hidden-file" accept="image/*" onchange="handleFileSelect(this)">
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="control-title">2. Layout</div>
+            <div class="option-grid">
+                <button class="option-btn active" onclick="setFormat('landscape', this)">Landscape</button>
+                <button class="option-btn" onclick="setFormat('portrait', this)">Portrait</button>
+            </div>
+            <div class="option-grid">
+                <button class="option-btn active" onclick="setStyle('classic', this)">Classic</button>
+                <button class="option-btn" onclick="setStyle('modern', this)">Modern</button>
+            </div>
+            
+            <div class="free-mode-toggle">
+                <div>
+                    <div style="font-size:11px; font-weight:700; color:#e65100;">🔓 UNLOCK POSITIONING</div>
+                    <button class="reset-btn" onclick="resetLayout()">Reset to Default</button>
+                </div>
+                <input type="checkbox" id="freeModeCheck" onchange="toggleFreeMode(this)">
+            </div>
+            
+            <button class="tilt-btn" onclick="enableMotion()"><i class="fas fa-mobile-alt"></i> Enable Phone Tilt</button>
+        </div>
+
+        <div class="control-section">
+            <div class="control-title">3. Finishes</div>
+            <div class="texture-grid">
+                <button class="option-btn active" onclick="setTheme('default', this)">Base</button>
+                <button class="option-btn" onclick="setTheme('theme-gold', this)">Gold</button>
+                <button class="option-btn" onclick="setTheme('theme-mesh', this)">Mesh</button>
+            </div>
+            <div class="fx-grid">
+                <button class="option-btn" onclick="toggleFx('fx-glass', this)">Glass</button>
+                <button class="option-btn" onclick="toggleFx('fx-noise', this)">Grain</button>
+                <button class="option-btn" onclick="toggleFx('fx-carbon', this)">Carbon</button>
+                <button class="option-btn" onclick="toggleFx('fx-vignette', this)">Vignette</button>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="control-title">4. Data & QR</div>
+            <input type="text" class="std-input" id="inName" placeholder="Name" oninput="renderCard()">
+            <input type="text" class="std-input" id="inTitle" placeholder="Subtitle" oninput="renderCard()">
+            <input type="text" class="std-input" id="inContact" placeholder="Contact Info" oninput="renderCard()">
+            
+            <div class="sub-label" style="margin-top:10px;">STATS</div>
+            <div class="preset-bar">
+                <button class="preset-btn" onclick="setEmojis('📸','❤️','👤')">Insta</button>
+                <button class="preset-btn" onclick="setEmojis('🤝','👥','📄')">LinkedIn</button>
+            </div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji1" value="📸" oninput="renderCard()"><input type="text" class="std-input" id="inStat1" placeholder="Stat 1" oninput="renderCard()"></div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji2" value="❤️" oninput="renderCard()"><input type="text" class="std-input" id="inStat2" placeholder="Stat 2" oninput="renderCard()"></div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji3" value="👤" oninput="renderCard()"><input type="text" class="std-input" id="inStat3" placeholder="Stat 3" oninput="renderCard()"></div>
+
+            <div class="qr-controls">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="font-size:11px; font-weight:bold; color:#555;">QR CODE</span>
+                    <input type="checkbox" onchange="toggleQR(this)" checked>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:10px; color:#666;">Size:</span>
+                    <input type="range" id="qrSize" min="30" max="120" value="50" oninput="generateQR()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-panel" id="previewPanel">
+        <div class="card-wrapper format-landscape style-classic" id="captureCard">
+            <div class="layer-base theme-generic" id="cardTheme"></div>
+            <div class="layer-texture" id="cardTexture"></div>
+            <div class="layer-finish" id="cardFinish"></div>
+            <div class="layer-glare" id="cardGlare"></div>
+            
+            <div class="c-content" id="cardContent">
+                <div class="c-left drag-el" id="dragAvatar"><div class="c-avatar" id="outAvatar">IM</div></div>
+                <div class="c-right drag-el" id="dragText">
+                    <div class="c-handle" id="outSource"><i class="fas fa-globe"></i> WEBSITE</div>
+                    <div class="c-name" id="outName">MYBRAND</div>
+                    
+                    <div class="c-title-row" id="outTitleRow" style="display:none;"><i class="fas fa-briefcase"></i> <span id="outTitle">Official Page</span></div>
+
+                    <div class="c-stats-row" id="outStats" style="display:none;">
+                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji1">📸</span> <span id="valStat1">0</span></div>
+                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji2">❤️</span> <span id="valStat2">0</span></div>
+                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji3">👤</span> <span id="valStat3">0</span></div>
+                    </div>
+
+                    <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact Info</span></div>
+                    <div class="c-tag" id="outLink"></div>
+                </div>
+            </div>
+            <div class="c-qr drag-el" id="qrContainer"></div>
+        </div>
+
+        <div class="actions" style="display:flex; gap:10px;">
+            <button class="btn-dl btn-png" onclick="downloadPNG()"><i class="fas fa-image"></i> PNG</button>
+            <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+        </div>
+        <p style="margin-top:10px; font-size:11px; color:#666;">Move cursor over card to see 3D effect!</p>
+    </div>
+</div>
+
+<script>
+    let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com" };
+    let isFreeMode = false;
+
+    function initApp() {
+        document.getElementById('loader').style.display='none';
+        generateQR(); 
+        initDrag();
+        init3D(); 
+    }
+
+    // --- MOBILE GYROSCOPE ---
+    function enableMotion() {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+            DeviceMotionEvent.requestPermission().then(r => { if (r=='granted') window.addEventListener('deviceorientation', handleOrientation); });
+        } else { window.addEventListener('deviceorientation', handleOrientation); }
+        alert("Tilt Enabled!");
+    }
+    function handleOrientation(e) {
+        if(isFreeMode) return;
+        const c = document.getElementById('captureCard');
+        const g = document.getElementById('cardGlare');
+        let x = e.beta; let y = e.gamma;
+        if (x>40) x=40; if (x<-40) x=-40; if (y>40) y=40; if (y<-40) y=-40;
+        c.style.transform = `perspective(1000px) rotateX(${-x/2}deg) rotateY(${y/2}deg)`;
+        g.style.opacity = (Math.abs(x)+Math.abs(y))/50;
+        g.style.background = `linear-gradient(${y*4}deg, rgba(255,255,255,0.4) 0%, transparent 80%)`;
+    }
+
+    // --- DESKTOP TILT ---
+    function init3D() {
+        const p = document.getElementById('previewPanel');
+        const c = document.getElementById('captureCard');
+        const g = document.getElementById('cardGlare');
+        p.addEventListener('mousemove', (e) => {
+            if(isFreeMode || window.innerWidth<800) return;
+            const r = c.getBoundingClientRect();
+            const x = e.clientX - r.left; const y = e.clientY - r.top;
+            const cx = r.width/2; const cy = r.height/2;
+            const rx = ((y-cy)/cy)*-12; const ry = ((x-cx)/cx)*12;
+            c.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+            g.style.opacity = '1';
+            g.style.transform = `translate(${x}px, ${y}px)`;
+            g.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.3) 0%, transparent 80%)`;
+        });
+        p.addEventListener('mouseleave', () => { c.style.transform = `perspective(1000px) rotateX(0) rotateY(0)`; g.style.opacity = '0'; });
+    }
+
+    // --- CONTENT LOGIC ---
+    function analyzeLink() {
+        const urlRaw = document.getElementById('linkInput').value.trim();
+        if(!urlRaw) return;
+        cardState.fullUrl = urlRaw.startsWith('http') ? urlRaw : 'https://' + urlRaw;
+        
+        let url = urlRaw.replace(/^https?:\/\//, '').replace('www.', '');
+        let parts = url.split('/');
+        let domain = parts[0];
+        let handle = parts[1] || parts[0];
+
+        let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
+        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; handle=handle.split('?')[0]; setEmojis('📸','❤️','👤'); }
+        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); }
+        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
+
+        updateBaseTheme(newTheme, newSource, newIcon);
+        cardState.name = handle;
+        document.getElementById('inName').value = handle;
+        applyImage(`https://unavatar.io/${domain}/${handle}`);
+        generateQR();
+        renderCard();
+    }
+
+    function renderCard() {
+        const inName = document.getElementById('inName').value;
+        const inTitle = document.getElementById('inTitle').value;
+        const inContact = document.getElementById('inContact').value;
+        
+        document.getElementById('outName').innerText = inName || cardState.name;
+        document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
+        
+        // Hide Link Pill Logic
+        document.getElementById('outLink').style.display = 'none';
+
+        const tr = document.getElementById('outTitleRow');
+        if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
+
+        const cr = document.getElementById('outContactRow');
+        if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
+
+        const s1 = document.getElementById('inStat1').value;
+        const s2 = document.getElementById('inStat2').value;
+        const s3 = document.getElementById('inStat3').value;
+        const sr = document.getElementById('outStats');
+
+        if(s1 || s2 || s3) {
+            sr.style.display = 'flex';
+            document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value;
+            document.getElementById('valStat1').innerText = s1 || "-";
+            document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value;
+            document.getElementById('valStat2').innerText = s2 || "-";
+            document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value;
+            document.getElementById('valStat3').innerText = s3 || "-";
+        } else { sr.style.display = 'none'; }
+
+        const av = document.getElementById('outAvatar');
+        if(!av.querySelector('img') || av.querySelector('img').style.display==='none') {
+            av.innerText = (inName || cardState.name).substring(0,2).toUpperCase();
+        }
+    }
+
+    // --- POSITIONING LOGIC (PERSISTENT) ---
+    function toggleFreeMode(cb) {
+        isFreeMode = cb.checked;
+        const card = document.getElementById('captureCard');
+        if(isFreeMode) {
+            card.classList.add('drag-active');
+            card.classList.add('custom-layout'); // Switches to absolute layout
+            card.style.transform = "none"; // Reset 3D while editing
+        } else {
+            card.classList.remove('drag-active');
+            // We DO NOT remove 'custom-layout' so positions persist
+        }
+    }
+
+    function resetLayout() {
+        const card = document.getElementById('captureCard');
+        const av = document.getElementById('dragAvatar');
+        const txt = document.getElementById('dragText');
+        const qr = document.getElementById('qrContainer');
+        
+        card.classList.remove('custom-layout');
+        av.style = ""; txt.style = ""; qr.style = ""; // Clear inline styles
+        // Re-apply default QR pos
+        qr.style.bottom = '20px'; qr.style.right = '20px';
+    }
+
+    function initDrag() {
+        const els = [document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')];
+        let activeEl = null; let startX=0, startY=0, initLeft=0, initTop=0;
+
+        els.forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                if(!isFreeMode) return; 
+                activeEl = el; e.preventDefault();
+                startX = e.clientX; startY = e.clientY;
+                initLeft = activeEl.offsetLeft; initTop = activeEl.offsetTop;
+                // Force absolute if not already
+                if(getComputedStyle(activeEl).position !== 'absolute') {
+                    activeEl.style.position = 'absolute';
+                    activeEl.style.left = initLeft + 'px';
+                    activeEl.style.top = initTop + 'px';
+                    activeEl.style.bottom = 'auto'; activeEl.style.right = 'auto';
+                }
+            });
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if(!activeEl) return;
+            const dx = e.clientX - startX; const dy = e.clientY - startY;
+            activeEl.style.left = (initLeft + dx) + 'px'; activeEl.style.top = (initTop + dy) + 'px';
+            activeEl.style.bottom = 'auto'; activeEl.style.right = 'auto';
+        });
+        document.addEventListener('mouseup', () => { activeEl = null; });
+    }
+
+    // UTILS
+    function generateQR() {
+        const qrBox = document.getElementById('qrContainer');
+        const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked;
+        const size = document.getElementById('qrSize').value;
+        if (!isChecked) { qrBox.style.display = 'none'; return; }
+        qrBox.style.display = 'flex'; qrBox.innerHTML = "";
+        // GLASS QR: Transparent background on QR itself, White container handles contrast
+        new QRCode(qrBox, { 
+            text: cardState.fullUrl, 
+            width: parseInt(size), 
+            height: parseInt(size), 
+            colorDark : "#000000", 
+            colorLight : "rgba(255,255,255,0)", /* TRANSPARENT BG for GLASS effect */
+            correctLevel : QRCode.CorrectLevel.L 
+        });
+    }
+    function toggleQR(cb) { generateQR(); }
+    function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
+    function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
+    function applyImage(url) { document.getElementById('outAvatar').innerHTML = `<img src="${url}" class="c-img" onerror="this.parentNode.innerText='IM'">`; }
+    function setTheme(t, b) { document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; toggleActive(b); }
+    function toggleFx(f, b) { const l = ['fx-noise','fx-carbon','fx-glass','fx-holo','fx-vignette'].includes(f) ? 'cardTexture' : 'cardFinish'; const el = document.getElementById(l); if(el.classList.contains(f)) { el.classList.remove(f); b.classList.remove('active'); } else { el.className = l === 'cardTexture' ? 'layer-texture' : 'layer-finish'; el.classList.add(f); b.classList.add('active'); } }
+    function setFormat(f, b) { document.getElementById('captureCard').className = `card-wrapper format-${f} style-${document.querySelector('.style-modern.active') ? 'modern' : 'classic'}`; toggleActive(b); }
+    function setStyle(s, b) { document.getElementById('captureCard').className = `card-wrapper format-${document.querySelector('.option-btn[onclick*="format-landscape"].active') ? 'landscape' : 'portrait'} style-${s}`; toggleActive(b); }
+    function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
+
+    function downloadPNG() { 
+        const card = document.getElementById('captureCard'); const pt = card.style.transform; card.style.transform = "none";
+        html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
+            const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); card.style.transform = pt; 
+        }); 
+    }
+    
+    function downloadPDF() { 
+        const card = document.getElementById('captureCard'); const pt = card.style.transform; card.style.transform = "none";
+        html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
+            const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] });
+            pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3);
+            pdf.link(0, 0, c.width/3, c.height/3, { url: cardState.fullUrl });
+            pdf.save(`Card_${cardState.name}.pdf`); card.style.transform = pt;
+        }); 
+    }
+
+    const dropArea = document.getElementById('dropArea');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false));
+    dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+    document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image')) applyImage(URL.createObjectURL(i.getAsFile())); }); });
+    function handleFileSelect(i) { handleFiles(i.files); }
+    function handleFiles(f) { if(f[0]) applyImage(URL.createObjectURL(f[0])); }
+</script>
+</body>
+</html>
