@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: vCard Suite</title>
+    <title>Magic Card: Tappable</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -120,8 +120,7 @@
         .btn-pdf { background: #ef4444; color: white; }
         .btn-html { background: #10b981; color: white; }
         
-        /* VCARD BUTTON STYLE */
-        .btn-vcard { background: #2563eb; color: white; margin-left: auto; } /* Blue */
+        .btn-vcard { background: #2563eb; color: white; margin-left: auto; } 
 
         .drop-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; background: #f9fafb; cursor: pointer; margin-top: 10px; }
         .hidden-file { display: none; }
@@ -140,8 +139,7 @@
         
         .tap-hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 9999; }
         
-        /* FLOATING ACTION BUTTON (Live View Only) */
-        .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none; } /* Hidden in Editor */
+        .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none; } 
         .fab-btn { background: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(37,99,235,0.4); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s; }
         .fab-btn:hover { transform: scale(1.05); }
     </style>
@@ -153,7 +151,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">vCard Suite v13.0</div>
+        <div class="subtitle">Tappable Live v15.0</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -204,6 +202,7 @@
             <div class="control-title">4. Data & QR</div>
             <input type="text" class="std-input" id="inName" placeholder="Name" oninput="renderCard()">
             <input type="text" class="std-input" id="inTitle" placeholder="Subtitle" oninput="renderCard()">
+            <input type="text" class="std-input" id="inPhone" placeholder="Phone Number" oninput="renderCard()">
             <input type="text" class="std-input" id="inContact" placeholder="Contact Info" oninput="renderCard()">
             
             <div class="sub-label" style="margin-top:10px;">STATS</div>
@@ -249,7 +248,8 @@
                         <div class="c-stat-item"><span id="valStat3">Following</span> <span class="c-stat-emoji" id="outEmoji3">👤</span></div>
                     </div>
 
-                    <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact Info</span></div>
+                    <div class="c-info-row" id="outPhoneRow" style="display:none;"><i class="fas fa-phone"></i> <span id="outPhone"></span></div>
+                    <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-info-circle"></i> <span id="outContact">Contact Info</span></div>
                     <div class="c-tag" id="outLink"></div>
                 </div>
             </div>
@@ -269,10 +269,10 @@
     <button class="fab-btn" onclick="downloadVCard()"><i class="fas fa-address-book"></i> Save Contact</button>
 </div>
 
-<div class="tap-hint" id="tapHint">👆 Tap card to enable 3D Tilt</div>
+<div class="tap-hint" id="tapHint">👆 Tap card to visit profile</div>
 
 <script>
-    let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com" };
+    let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com", phone: "" };
     let isFreeMode = false;
     let uploadedMediaData = null; 
     let userInteracting = false; 
@@ -287,10 +287,16 @@
             initDrag();
         } else {
             // DOWNLOADED LIVE CARD MODE
+            // 1. Enable Tap-to-Visit
+            document.getElementById('captureCard').style.cursor = 'pointer';
+            document.getElementById('captureCard').onclick = function() {
+                window.open(cardState.fullUrl, '_blank');
+            };
+
+            // 2. Enable Tilt on Body click (mobile compatibility)
             document.body.addEventListener('click', enableMotion);
-            setTimeout(() => { document.getElementById('tapHint').style.opacity = '1'; }, 1000);
             
-            // Show Contact Button only in Live Mode
+            setTimeout(() => { document.getElementById('tapHint').style.opacity = '1'; }, 1000);
             const fab = document.getElementById('fabContact');
             if(fab) fab.style.display = 'block';
         }
@@ -299,26 +305,16 @@
         requestAnimationFrame(autoPlayLoop); 
     }
 
-    // --- VCARD ENGINE ---
+    // --- VCARD ---
     function downloadVCard() {
-        // Fallback: In downloaded mode, inputs don't exist, so we grab text from DOM
-        const name = document.getElementById('outName').innerText || "Contact";
+        const name = cardState.name || "Contact";
         const url = cardState.fullUrl;
-        
-        // Construct VCF 3.0 String
-        const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${name}
-N:;${name};;;
-URL:${url}
-NOTE:Connect via Magic Card
-END:VCARD`;
-
+        const phone = cardState.phone || "";
+        let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nN:;${name};;;\nURL:${url}\nNOTE:Connect via Magic Card`;
+        if(phone) vcard += `\nTEL;TYPE=CELL:${phone}`;
+        vcard += `\nEND:VCARD`;
         const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `contact_${name}.vcf`;
-        a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `contact_${name}.vcf`; a.click();
     }
 
     // --- PHYSICS ---
@@ -326,10 +322,8 @@ END:VCARD`;
         const p = document.getElementById('previewPanel');
         const c = document.getElementById('captureCard');
         const g = document.getElementById('cardGlare');
-        
         p.addEventListener('mouseenter', () => { userInteracting = true; });
         p.addEventListener('mouseleave', () => { userInteracting = false; });
-        
         p.addEventListener('mousemove', (e) => {
             if(isFreeMode || window.innerWidth<800) return;
             const r = c.getBoundingClientRect();
@@ -346,13 +340,11 @@ END:VCARD`;
     function autoPlayLoop(timestamp) {
         let timeSinceGyro = Date.now() - lastGyroTime;
         let isGyroActive = timeSinceGyro < 500; 
-
         if(!userInteracting && !isFreeMode && !isGyroActive) {
             const c = document.getElementById('captureCard');
             const g = document.getElementById('cardGlare');
             const t = timestamp * 0.001;
-            const rx = Math.sin(t * 1.5) * 6; 
-            const ry = Math.cos(t * 1.2) * 8; 
+            const rx = Math.sin(t * 1.5) * 6; const ry = Math.cos(t * 1.2) * 8; 
             c.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
             const gx = 50 + (ry * 3); const gy = 50 + (rx * 3);
             g.style.opacity = '0.6';
@@ -361,15 +353,11 @@ END:VCARD`;
         requestAnimationFrame(autoPlayLoop);
     }
 
-    // --- LOGIC ---
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
         if(!urlRaw) return;
-        let cleanUrl = urlRaw;
-        if (!/^https?:\/\//i.test(urlRaw)) { cleanUrl = 'https://' + urlRaw; }
-        cardState.fullUrl = cleanUrl;
-        let domain = "";
-        try { domain = new URL(cleanUrl).hostname.toLowerCase(); } catch (e) { return; }
+        let cleanUrl = urlRaw; if (!/^https?:\/\//i.test(urlRaw)) { cleanUrl = 'https://' + urlRaw; } cardState.fullUrl = cleanUrl;
+        let domain = ""; try { domain = new URL(cleanUrl).hostname.toLowerCase(); } catch (e) { return; }
         let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace(/^www\./, '');
         let parts = displayUrl.split('/');
         let handle = parts[1] ? parts[1].split('?')[0] : '';
@@ -379,28 +367,34 @@ END:VCARD`;
         else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
         updateBaseTheme(newTheme, newSource, newIcon);
         if(handle) { cardState.name = handle; document.getElementById('inName').value = handle; }
-        generateQR();
-        renderCard();
+        generateQR(); renderCard();
     }
 
     function renderCard() {
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
         const inContact = document.getElementById('inContact').value;
-        document.getElementById('outName').innerText = inName || cardState.name;
+        const inPhone = document.getElementById('inPhone').value;
+        
+        cardState.name = inName || cardState.name;
+        cardState.phone = inPhone;
+
+        document.getElementById('outName').innerText = cardState.name;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
         document.getElementById('outLink').style.display = 'none'; 
+        
         const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
+        const pr = document.getElementById('outPhoneRow'); if(inPhone) { pr.style.display = 'flex'; document.getElementById('outPhone').innerText = inPhone; } else { pr.style.display = 'none'; }
         const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
         const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
         if(s1 || s2 || s3) { sr.style.display = 'flex'; document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value; document.getElementById('valStat1').innerText = s1 || "-"; document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value; document.getElementById('valStat2').innerText = s2 || "-"; document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value; document.getElementById('valStat3').innerText = s3 || "-"; } else { sr.style.display = 'none'; }
+        
         const av = document.getElementById('outAvatar'); 
         if((!av.querySelector('img') && !av.querySelector('video')) || (av.querySelector('img') && av.querySelector('img').style.display==='none')) { 
             av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); 
         }
     }
 
-    // --- HTML EXPORT WITH DATA SERIALIZATION ---
     function downloadHTML() {
         const title = document.getElementById('inName').value || 'Card';
         const docClone = document.documentElement.cloneNode(true);
@@ -409,7 +403,6 @@ END:VCARD`;
         const container = docClone.querySelector('.app-container');
         container.style.justifyContent = 'center'; container.style.alignItems = 'center'; container.style.height = '100vh';
         
-        // Embed Avatar
         if(uploadedMediaData) {
             const avatarDiv = docClone.querySelector('#outAvatar');
             if(uploadedMediaData.startsWith('data:video')) {
@@ -419,11 +412,9 @@ END:VCARD`;
             }
         }
 
-        // SERIALIZE DATA FOR DOWNLOADED CARD
         const script = docClone.querySelector('script');
         const stateDump = `
             cardState = ${JSON.stringify(cardState)};
-            // Ensure vCard button is visible in download
             document.getElementById('fabContact').style.display = 'block';
         `;
         script.textContent = stateDump + script.textContent;
@@ -432,7 +423,6 @@ END:VCARD`;
         const a = document.createElement('a'); a.download = `Live_Card_${title}.html`; a.href = URL.createObjectURL(blob); a.click();
     }
 
-    // --- UTILS ---
     function generateQR() { const qrBox = document.getElementById('qrContainer'); const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked; if (!isChecked) { qrBox.style.display = 'none'; return; } qrBox.style.display = 'flex'; qrBox.innerHTML = ""; new QRCode(qrBox, { text: cardState.fullUrl, width: 256, height: 256, colorDark : "#000000", colorLight : "rgba(255,255,255,0)", correctLevel : QRCode.CorrectLevel.M }); resizeQR(); }
     function resizeQR() { const size = document.getElementById('qrSize').value; document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px'); }
     function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
@@ -451,13 +441,9 @@ END:VCARD`;
     function handleOrientation(e) { 
         if(isFreeMode) return; 
         lastGyroTime = Date.now(); 
-        const c = document.getElementById('captureCard'); 
-        const g = document.getElementById('cardGlare'); 
-        let x = e.beta; let y = e.gamma; 
+        const c = document.getElementById('captureCard'); const g = document.getElementById('cardGlare'); let x = e.beta; let y = e.gamma; 
         if (x>40) x=40; if (x<-40) x=-40; if (y>40) y=40; if (y<-40) y=-40; 
-        c.style.transform = `perspective(1000px) rotateX(${-x/2}deg) rotateY(${y/2}deg)`; 
-        g.style.opacity = (Math.abs(x)+Math.abs(y))/50; 
-        g.style.background = `linear-gradient(${y*4}deg, rgba(255,255,255,0.4) 0%, transparent 80%)`; 
+        c.style.transform = `perspective(1000px) rotateX(${-x/2}deg) rotateY(${y/2}deg)`; g.style.opacity = (Math.abs(x)+Math.abs(y))/50; g.style.background = `linear-gradient(${y*4}deg, rgba(255,255,255,0.4) 0%, transparent 80%)`; 
     }
     
     function toggleQR(cb) { generateQR(); }
@@ -469,7 +455,6 @@ END:VCARD`;
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     
-    // DOWNLOAD
     async function prepareVideoForCapture(card) {
         const video = card.querySelector('video');
         if (video) {
