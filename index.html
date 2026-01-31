@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Clean Contact</title>
+    <title>Magic Card: Mobile Fit</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,6 +12,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --bg: #f3f4f6; --surface: #ffffff; --text: #1f2937; --primary: #6366f1; }
+        * { box-sizing: border-box; } /* GLOBAL SAFE BOXING */
         body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; height: 100vh; margin: 0; overflow: hidden; color: var(--text); }
 
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; display: flex; justify-content: center; align-items: center; }
@@ -20,18 +21,23 @@
         .app-container { display: flex; width: 100%; height: 100%; }
         @media (max-width: 800px) {
             .app-container { flex-direction: column; overflow-y: auto; }
-            .input-panel { width: 100%; height: auto; padding: 20px; box-sizing: border-box; }
-            .preview-panel { min-height: 500px; padding: 20px; }
+            .input-panel { width: 100%; height: auto; padding: 20px; }
+            .preview-panel { 
+                min-height: 500px; 
+                padding: 40px 20px; /* More breathing room */
+                justify-content: flex-start; /* Prevent vertical centering overlapping on small screens */
+                overflow-x: hidden; /* Prevent scrollbar */
+            }
             body { overflow: auto; }
         }
 
-        .input-panel { width: 440px; background: var(--surface); padding: 30px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; overflow-y: auto; box-sizing: border-box; }
+        .input-panel { width: 440px; background: var(--surface); padding: 30px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; overflow-y: auto; }
         .control-section { margin-bottom: 25px; border-bottom: 1px solid #f3f4f6; padding-bottom: 20px; }
         .control-title { font-size: 11px; font-weight: 800; color: #9ca3af; margin-bottom: 10px; text-transform: uppercase; }
         .sub-label { font-size: 10px; font-weight: 700; color: #6b7280; margin-bottom: 6px; display: block; }
 
         /* INPUTS */
-        .smart-input, .std-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #f9fafb; margin-bottom: 8px; box-sizing: border-box; }
+        .smart-input, .std-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #f9fafb; margin-bottom: 8px; }
         .stat-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .emoji-input { width: 40px; text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
         .text-input { flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
@@ -49,14 +55,41 @@
         /* PREVIEW AREA */
         .preview-panel { flex: 1; background: #e5e7eb; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; perspective: 1200px; }
         
-        /* CARD */
-        .card-wrapper { position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.3); overflow: hidden; display: flex; transition: transform 0.1s cubic-bezier(0.1, 0.1, 0.1, 1); transform-style: preserve-3d; border-radius: 24px; }
-        .format-landscape { width: 480px; height: 280px; }
-        .format-portrait { width: 320px; height: 568px; flex-direction: column; }
-
-        @media (max-width: 500px) {
-            .format-landscape { width: 340px; height: 200px; }
-            .format-portrait { width: 280px; height: 500px; }
+        /* CARD - FLUID RESPONSIVE LOGIC */
+        .card-wrapper { 
+            position: relative; 
+            background: white; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3); 
+            overflow: hidden; 
+            display: flex; 
+            transition: transform 0.1s cubic-bezier(0.1, 0.1, 0.1, 1); 
+            transform-style: preserve-3d; 
+            border-radius: 24px; 
+            /* Desktop Default */
+            width: 480px; 
+            height: 280px;
+        }
+        
+        /* Mobile Scaling: Use Aspect Ratio + Max Width % */
+        @media (max-width: 600px) {
+            .card-wrapper.format-landscape { 
+                width: 85vw; /* Never wider than 85% of screen */
+                max-width: 400px; 
+                height: auto; 
+                aspect-ratio: 1.71; /* 480/280 */
+            }
+            .card-wrapper.format-portrait { 
+                width: 80vw; 
+                max-width: 320px; 
+                height: auto; 
+                aspect-ratio: 0.56; /* 320/568 */
+                flex-direction: column;
+            }
+            
+            /* Text Scaling for Mobile to prevent overflow inside card */
+            .c-name { font-size: 22px !important; }
+            .c-handle { font-size: 10px !important; }
+            .c-stat-item { font-size: 10px !important; }
         }
 
         .layer-base, .layer-texture, .layer-finish { position: absolute; top:0; left:0; width:100%; height:100%; }
@@ -67,7 +100,7 @@
         
         .c-content { display: flex; width: 100%; height: 100%; z-index: 10; position: relative; }
 
-        /* THEMES & FX */
+        /* THEMES */
         .theme-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         .theme-linkedin { background: linear-gradient(135deg, #0077b5, #005582); }
         .theme-twitter { background: linear-gradient(135deg, #1da1f2, #0d8bd9); }
@@ -91,7 +124,13 @@
             width: auto; height: auto;
         }
         .c-qr img, .c-qr canvas { display: block; width: var(--qr-size, 50px); height: var(--qr-size, 50px); }
-        .format-landscape.style-classic .c-qr { bottom: 20px; right: 20px; top: auto; }
+        
+        .format-portrait .c-qr { bottom: 20px; right: 20px; }
+        
+        /* Mobile QR Scaling */
+        @media (max-width: 600px) {
+            .c-qr img, .c-qr canvas { width: calc(var(--qr-size, 50px) * 0.8) !important; height: calc(var(--qr-size, 50px) * 0.8) !important; }
+        }
 
         /* CONTENT */
         .style-classic .c-left { width: 35%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.2); }
@@ -151,7 +190,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">v17.0 (Clean Contact)</div>
+        <div class="subtitle">v18.0 (Fluid Mobile)</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -282,6 +321,7 @@
         document.getElementById('loader').style.display='none';
         
         if(document.getElementById('linkInput')) {
+            // EDITOR MODE
             generateQR(); 
             initDrag();
         } else {
@@ -306,27 +346,15 @@
 
     // --- VCARD (STRICT CLEAN) ---
     function downloadVCard() {
-        // Grab Name and Phone from State (updated via inputs)
         const name = cardState.name || "Contact";
         const phone = cardState.phone || "";
         
-        // STRICT VCF Construction - Only Name and Phone
-        let vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${name}
-N:;${name};;;`;
-
-        if(phone) {
-            vcard += `\nTEL;TYPE=CELL:${phone}`;
-        }
-
+        let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nN:;${name};;;`;
+        if(phone) vcard += `\nTEL;TYPE=CELL:${phone}`;
         vcard += `\nEND:VCARD`;
 
         const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `contact_${name}.vcf`;
-        a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `contact_${name}.vcf`; a.click();
     }
 
     // --- PHYSICS ---
