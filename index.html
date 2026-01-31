@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Freeze Frame</title>
+    <title>Magic Card: Live Export</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -44,7 +44,6 @@
         .texture-grid { grid-template-columns: 1fr 1fr 1fr; }
         .fx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .option-btn { padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; cursor: pointer; font-size: 10px; font-weight: 600; color: #4b5563; }
-        .option-btn:hover { border-color: var(--primary); }
         .option-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         /* PREVIEW AREA */
@@ -113,9 +112,13 @@
         .c-stat-emoji { font-size: 13px; }
         .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
         
+        .c-tag { display: none; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+
         .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-png { background: #1f2937; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
+        .btn-html { background: #10b981; color: white; } /* HTML Green */
+        
         .drop-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; background: #f9fafb; cursor: pointer; margin-top: 10px; }
         .hidden-file { display: none; }
         .qr-controls { margin-top: 15px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
@@ -139,7 +142,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Freeze-Frame Engine v7.1</div>
+        <div class="subtitle">Live Export Suite v8.0</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -236,22 +239,25 @@
                     </div>
 
                     <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact Info</span></div>
+                    <div class="c-tag" id="outLink"></div>
                 </div>
             </div>
             <div class="c-qr drag-el" id="qrContainer"></div>
         </div>
 
         <div class="actions" style="display:flex; gap:10px;">
-            <button class="btn-dl btn-png" onclick="downloadPNG()"><i class="fas fa-image"></i> PNG (3D)</button>
-            <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF (Flat)</button>
+            <button class="btn-dl btn-png" onclick="downloadPNG()"><i class="fas fa-image"></i> PNG</button>
+            <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn-dl btn-html" onclick="downloadHTML()"><i class="fas fa-code"></i> Live Card</button>
         </div>
-        <p style="margin-top:10px; font-size:11px; color:#666;">PNG = Social Media (3D) | PDF = Clickable (Flat)</p>
+        <p style="margin-top:10px; font-size:11px; color:#666;">PNG/PDF are static. Use "Live Card" to share animations.</p>
     </div>
 </div>
 
 <script>
     let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com" };
     let isFreeMode = false;
+    let uploadedMediaData = null; // Store base64 here
 
     function initApp() {
         document.getElementById('loader').style.display='none';
@@ -271,10 +277,8 @@
         
         new QRCode(qrBox, { 
             text: cardState.fullUrl, 
-            width: 256, 
-            height: 256, 
-            colorDark : "#000000", 
-            colorLight : "rgba(255,255,255,0)", 
+            width: 256, height: 256, 
+            colorDark : "#000000", colorLight : "rgba(255,255,255,0)", 
             correctLevel : QRCode.CorrectLevel.M 
         });
         resizeQR(); 
@@ -291,19 +295,11 @@
         if(!urlRaw) return;
         
         let cleanUrl = urlRaw;
-        if (!/^https?:\/\//i.test(urlRaw)) {
-            cleanUrl = 'https://' + urlRaw;
-        }
+        if (!/^https?:\/\//i.test(urlRaw)) { cleanUrl = 'https://' + urlRaw; }
         cardState.fullUrl = cleanUrl;
 
         let domain = "";
-        try {
-            const urlObj = new URL(cleanUrl);
-            domain = urlObj.hostname.toLowerCase();
-        } catch (e) {
-            console.error("Invalid URL");
-            return;
-        }
+        try { domain = new URL(cleanUrl).hostname.toLowerCase(); } catch (e) { return; }
 
         let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace(/^www\./, '');
         let parts = displayUrl.split('/');
@@ -344,6 +340,8 @@
         document.getElementById('outName').innerText = inName || cardState.name;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
         
+        document.getElementById('outLink').style.display = 'none'; 
+
         const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
         const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
         const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
@@ -371,38 +369,22 @@
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     
-    // --- DOWNLOAD LOGIC (FREEZE FRAME) ---
+    // --- DOWNLOAD ---
     async function prepareVideoForCapture(card) {
-        // Find video
         const video = card.querySelector('video');
         if (video) {
-            video.pause(); // FREEZE IT
-            
-            // Create a temporary canvas
+            video.pause();
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth || video.clientWidth;
             canvas.height = video.videoHeight || video.clientHeight;
             const ctx = canvas.getContext('2d');
-            
-            // Draw the current video frame to canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Create a dedicated replacement Image (more reliable than direct canvas)
             const img = document.createElement('img');
             img.src = canvas.toDataURL('image/png');
-            img.className = video.className; // Keep styles
-            img.style.width = getComputedStyle(video).width;
-            img.style.height = getComputedStyle(video).height;
-            img.style.objectFit = getComputedStyle(video).objectFit;
-            img.style.borderRadius = getComputedStyle(video).borderRadius;
-            
-            // Wait for it to load to avoid flickering
-            await new Promise(r => img.onload = r);
-            
-            // Swap
+            img.className = video.className;
+            img.style.cssText = video.style.cssText;
             video.style.display = 'none';
             video.parentNode.insertBefore(img, video);
-            
             return { video, img };
         }
         return null;
@@ -420,37 +402,46 @@
         const card = document.getElementById('captureCard'); 
         const glare = document.getElementById('cardGlare');
         const prevTransform = card.style.transform;
-        
         card.style.transform = `perspective(1000px) rotateX(-5deg) rotateY(5deg)`;
-        glare.style.opacity = '0.4'; 
-        glare.style.background = `radial-gradient(circle at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 60%)`;
-
-        setTimeout(async () => {
-            const swap = await prepareVideoForCapture(card);
-            html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
-                const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); 
-                restoreVideoAfterCapture(swap);
-                card.style.transform = prevTransform; glare.style.opacity = '0';
-            }); 
-        }, 100);
+        glare.style.opacity = '0.4'; glare.style.background = `radial-gradient(circle at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 60%)`;
+        setTimeout(async () => { const swap = await prepareVideoForCapture(card); html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); restoreVideoAfterCapture(swap); card.style.transform = prevTransform; glare.style.opacity = '0'; }); }, 100);
     }
-    
     function downloadPDF() { 
-        const card = document.getElementById('captureCard'); 
-        const prevTransform = card.style.transform;
-        card.style.transform = "none";
-        setTimeout(async () => { 
-            const swap = await prepareVideoForCapture(card);
-            html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
-                const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] }); 
-                pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3); 
-                const w = pdf.internal.pageSize.getWidth(); const h = pdf.internal.pageSize.getHeight(); 
-                pdf.link(0, 0, w, h, { url: cardState.fullUrl }); 
-                pdf.save(`Card_${cardState.name}.pdf`); 
-                restoreVideoAfterCapture(swap);
-                card.style.transform = prevTransform; 
-            }); 
-        }, 100);
+        const card = document.getElementById('captureCard'); const prevTransform = card.style.transform; card.style.transform = "none";
+        setTimeout(async () => { const swap = await prepareVideoForCapture(card); html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] }); pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3); const w = pdf.internal.pageSize.getWidth(); const h = pdf.internal.pageSize.getHeight(); pdf.link(0, 0, w, h, { url: cardState.fullUrl }); pdf.save(`Card_${cardState.name}.pdf`); restoreVideoAfterCapture(swap); card.style.transform = prevTransform; }); }, 100);
+    }
+
+    // --- HTML EXPORT ---
+    function downloadHTML() {
+        const title = document.getElementById('inName').value || 'Card';
+        const docClone = document.documentElement.cloneNode(true);
+        
+        // Remove UI elements
+        const uiElements = docClone.querySelectorAll('.input-panel, .actions, p');
+        uiElements.forEach(el => el.remove());
+        
+        // Ensure Preview is centered
+        const container = docClone.querySelector('.app-container');
+        container.style.justifyContent = 'center';
+        container.style.alignItems = 'center';
+        container.style.height = '100vh';
+        
+        // Embed Avatar
+        if(uploadedMediaData) {
+            const avatarDiv = docClone.querySelector('#outAvatar');
+            if(uploadedMediaData.startsWith('data:video')) {
+               avatarDiv.innerHTML = `<video src="${uploadedMediaData}" class="c-img" autoplay loop muted playsinline></video>`;
+            } else {
+               avatarDiv.innerHTML = `<img src="${uploadedMediaData}" class="c-img">`;
+            }
+        }
+
+        const htmlContent = docClone.outerHTML;
+        const blob = new Blob([htmlContent], {type: 'text/html'});
+        const a = document.createElement('a');
+        a.download = `Live_Card_${title}.html`;
+        a.href = URL.createObjectURL(blob);
+        a.click();
     }
 
     // FILE HANDLING
@@ -463,15 +454,17 @@
     function handleFiles(f) { if(f[0]) applyImageFromBlob(f[0]); }
     
     function applyImageFromBlob(blob) {
-        const url = URL.createObjectURL(blob);
-        const container = document.getElementById('outAvatar');
-        
-        if (blob.type.startsWith('video/')) {
-            // Must have 'muted' to autoplay in Chrome
-            container.innerHTML = `<video src="${url}" class="c-img" autoplay loop muted playsinline></video>`;
-        } else {
-            container.innerHTML = `<img src="${url}" class="c-img">`;
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            uploadedMediaData = reader.result; // Store base64
+            const container = document.getElementById('outAvatar');
+            if (blob.type.startsWith('video/')) {
+                container.innerHTML = `<video src="${uploadedMediaData}" class="c-img" autoplay loop muted playsinline></video>`;
+            } else {
+                container.innerHTML = `<img src="${uploadedMediaData}" class="c-img">`;
+            }
         }
+        reader.readAsDataURL(blob);
     }
 </script>
 </body>
