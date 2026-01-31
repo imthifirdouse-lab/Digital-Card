@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Auto-Fetch Restored</title>
+    <title>Magic Card: Stable Fetch</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -86,7 +86,6 @@
         .c-qr { 
             position: absolute; 
             bottom: 20px; right: 20px;
-            /* High Contrast Background */
             background: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(4px);
             padding: 5px; 
@@ -94,16 +93,13 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
             z-index: 100;
             display: flex; justify-content: center; align-items: center;
-            /* Ensure container adapts to inner image */
             width: auto; height: auto;
         }
-        
         .c-qr img, .c-qr canvas {
             display: block;
             width: var(--qr-size, 50px);
             height: var(--qr-size, 50px);
         }
-
         .format-landscape.style-classic .c-qr { bottom: 20px; right: 20px; top: auto; }
 
         /* CONTENT STYLES */
@@ -125,8 +121,6 @@
         .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; }
         .c-stat-emoji { font-size: 13px; }
         .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
-        
-        /* Link Tag (Hidden by default) */
         .c-tag { display: none; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
 
         .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -145,7 +139,6 @@
 
         .drag-active .drag-el { cursor: move; outline: 1px dashed rgba(255,255,255,0.5); user-select: none; }
         .drag-active .drag-el:hover { outline: 2px solid #6366f1; }
-        
         .tilt-btn { background: #2563eb; color: white; font-weight: bold; width: 100%; border: none; padding: 10px; border-radius: 8px; margin-top: 8px; cursor: pointer; }
     </style>
 </head>
@@ -156,7 +149,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Complete Suite v4.1</div>
+        <div class="subtitle">Complete Suite v4.2</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -290,11 +283,11 @@
         // HIGH DEFINITION GENERATION (256px)
         new QRCode(qrBox, { 
             text: cardState.fullUrl, 
-            width: 256, // Internal High Res
+            width: 256, 
             height: 256, 
             colorDark : "#000000", 
             colorLight : "rgba(255,255,255,0)", 
-            correctLevel : QRCode.CorrectLevel.M // Medium correction for safety
+            correctLevel : QRCode.CorrectLevel.M 
         });
         
         resizeQR(); // Apply visual size
@@ -303,12 +296,10 @@
     function resizeQR() {
         const size = document.getElementById('qrSize').value;
         const qrContainer = document.getElementById('qrContainer');
-        // We set the CSS variable to control visual size without affecting data resolution
         qrContainer.style.setProperty('--qr-size', size + 'px');
     }
 
     // --- DOWNLOAD LOGIC ---
-    // 1. PNG = 3D "Hero" Shot (Not clickable, purely visual)
     function downloadPNG() { 
         const card = document.getElementById('captureCard'); 
         const glare = document.getElementById('cardGlare');
@@ -327,7 +318,6 @@
         }, 100);
     }
     
-    // 2. PDF = Flat & Functional (Link covers 100% area)
     function downloadPDF() { 
         const card = document.getElementById('captureCard'); 
         const prevTransform = card.style.transform;
@@ -344,17 +334,16 @@
                 pdf.link(0, 0, c.width/3, c.height/3, { url: cardState.fullUrl });
                 
                 pdf.save(`Card_${cardState.name}.pdf`); 
-                card.style.transform = prevTransform; // Restore state
+                card.style.transform = prevTransform; 
             }); 
         }, 100);
     }
 
-    // --- CONTENT LOGIC (RESTORED FETCHING) ---
+    // --- CONTENT LOGIC (FIXED FETCHING) ---
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
         if(!urlRaw) return;
         
-        // Strict URL Formation
         if (!urlRaw.startsWith('http')) {
             cardState.fullUrl = 'https://' + urlRaw;
         } else {
@@ -366,25 +355,21 @@
         let domain = parts[0];
         let handle = parts[1] || parts[0];
 
-        // Specific Clean-up for Instagram query params
         if(domain.includes('instagram.com')) {
             handle = handle.split('?')[0]; 
         }
 
         let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
-        // RESTORED: Smart Avatar Query Logic
-        let avatarUrl = `https://unavatar.io/${domain}/${handle}`; // Default
+        let avatarUrl = `https://unavatar.io/${domain}/${handle}`; 
 
         if (domain.includes('instagram.com')) { 
             newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; 
             setEmojis('📸','❤️','👤'); 
-            avatarUrl = `https://unavatar.io/instagram/${handle}`; // Specific endpoint
+            avatarUrl = `https://unavatar.io/instagram/${handle}`; 
         }
         else if (domain.includes('linkedin.com')) { 
             newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; 
             setEmojis('🤝','👥','📄'); 
-            // LinkedIn often fails on unavatar, but we try specific provider
-            // avatarUrl = `https://unavatar.io/linkedin/${handle}`; (Unavatar deprecated this, fallback to domain)
         }
         else if (domain.includes('twitter.com') || domain.includes('x.com')) { 
             newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; 
@@ -396,13 +381,14 @@
         cardState.name = handle;
         document.getElementById('inName').value = handle;
         
-        // Apply Image with CrossOrigin Fix
-        applyImage(avatarUrl);
-        generateQR(); // Regenerate QR with new URL
+        // APPLY PROXY FIX FOR IMAGE
+        applyImage(`https://wsrv.nl/?url=${encodeURIComponent(avatarUrl)}`);
+        
+        generateQR();
         renderCard();
     }
 
-    // --- STANDARD RENDER & DRAG FUNCTIONS (UNCHANGED) ---
+    // --- RENDER ---
     function renderCard() {
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
@@ -410,9 +396,8 @@
         document.getElementById('outName').innerText = inName || cardState.name;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
         
-        // Restore Link Pill Logic if needed, otherwise hidden
-        const linkEl = document.getElementById('outLink');
-        if(cardState.link) { linkEl.style.display = 'inline-block'; linkEl.innerText = cardState.link; } else { linkEl.style.display = 'none'; }
+        // Hide Link Pill Logic
+        document.getElementById('outLink').style.display = 'none';
 
         const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
         const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
@@ -420,7 +405,9 @@
         if(s1 || s2 || s3) { sr.style.display = 'flex'; document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value; document.getElementById('valStat1').innerText = s1 || "-"; document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value; document.getElementById('valStat2').innerText = s2 || "-"; document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value; document.getElementById('valStat3').innerText = s3 || "-"; } else { sr.style.display = 'none'; }
         const av = document.getElementById('outAvatar'); if(!av.querySelector('img') || av.querySelector('img').style.display==='none') { av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); }
     }
-    function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); const a=document.getElementById('dragAvatar'); const t=document.getElementById('dragText'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
+    
+    // --- POSITIONING ---
+    function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
     function resetLayout() { const c=document.getElementById('captureCard'); const a=document.getElementById('dragAvatar'); const t=document.getElementById('dragText'); const q=document.getElementById('qrContainer'); c.classList.remove('custom-layout'); a.style=""; t.style=""; q.style=""; q.style.bottom='20px'; q.style.right='20px'; }
     function initDrag() { const els=[document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')]; let activeEl=null; let startX=0; let startY=0; let initLeft=0; let initTop=0; els.forEach(el=>{el.addEventListener('mousedown',(e)=>{if(!isFreeMode)return;activeEl=el;e.preventDefault();startX=e.clientX;startY=e.clientY;initLeft=activeEl.offsetLeft;initTop=activeEl.offsetTop;if(getComputedStyle(activeEl).position!=='absolute'){activeEl.style.position='absolute';activeEl.style.left=initLeft+'px';activeEl.style.top=initTop+'px';activeEl.style.bottom='auto';activeEl.style.right='auto';}});}); document.addEventListener('mousemove',(e)=>{if(!activeEl)return;const dx=e.clientX-startX;const dy=e.clientY-startY;activeEl.style.left=(initLeft+dx)+'px';activeEl.style.top=(initTop+dy)+'px';}); document.addEventListener('mouseup',()=>{activeEl=null;}); }
     function enableMotion() { if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') { DeviceMotionEvent.requestPermission().then(r => { if (r=='granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientation', handleOrientation); } alert("Tilt Enabled!"); }
@@ -434,7 +421,7 @@
     function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     
-    // Updated Apply Image with CrossOrigin safety
+    // PROXY FIX
     function applyImage(url) { 
         document.getElementById('outAvatar').innerHTML = `<img src="${url}" crossorigin="anonymous" class="c-img" onerror="this.parentNode.innerText='IM'">`; 
     }
