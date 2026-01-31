@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Card: 3D Holographic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magic Card: Functional Glass</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -18,18 +18,28 @@
 
         /* LAYOUT */
         .app-container { display: flex; width: 100%; height: 100%; }
-        .input-panel { width: 440px; background: var(--surface); padding: 30px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; overflow-y: auto; }
-        
+        @media (max-width: 800px) {
+            .app-container { flex-direction: column; overflow-y: auto; }
+            .input-panel { width: 100%; height: auto; padding: 20px; box-sizing: border-box; }
+            .preview-panel { min-height: 500px; padding: 20px; }
+            body { overflow: auto; }
+        }
+
+        .input-panel { width: 440px; background: var(--surface); padding: 30px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; overflow-y: auto; box-sizing: border-box; }
         .control-section { margin-bottom: 25px; border-bottom: 1px solid #f3f4f6; padding-bottom: 20px; }
         .control-title { font-size: 11px; font-weight: 800; color: #9ca3af; margin-bottom: 10px; text-transform: uppercase; }
+        .sub-label { font-size: 10px; font-weight: 700; color: #6b7280; margin-bottom: 6px; display: block; }
+
+        /* INPUTS */
         .smart-input, .std-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #f9fafb; margin-bottom: 8px; box-sizing: border-box; }
         .stat-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .emoji-input { width: 40px; text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
         .text-input { flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
 
-        /* CONTROLS */
+        /* PRESETS */
         .preset-bar { display: flex; gap: 5px; margin-bottom: 10px; }
         .preset-btn { font-size: 10px; padding: 4px 8px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 4px; }
+        .preset-btn:hover { background: #eff6ff; border-color: var(--primary); }
         .option-grid, .texture-grid { display: grid; gap: 8px; margin-bottom: 10px; }
         .option-grid { grid-template-columns: 1fr 1fr; }
         .texture-grid { grid-template-columns: 1fr 1fr 1fr; }
@@ -38,46 +48,28 @@
         .option-btn:hover { border-color: var(--primary); }
         .option-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* PREVIEW AREA (3D STAGE) */
-        .preview-panel { 
-            flex: 1; 
-            background: #e5e7eb; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            position: relative; 
-            perspective: 1000px; /* REQUIRED FOR 3D */
-        }
+        /* PREVIEW AREA */
+        .preview-panel { flex: 1; background: #e5e7eb; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; perspective: 1200px; }
         
-        /* CARD CONTAINER (THE 3D OBJECT) */
-        .card-wrapper { 
-            position: relative; 
-            background: white; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.2); 
-            overflow: hidden; 
-            display: flex; 
-            transition: transform 0.1s; /* Smooth movement */
-            transform-style: preserve-3d;
-        }
-        .format-landscape { width: 480px; height: 280px; border-radius: 24px; }
-        .format-portrait { width: 320px; height: 568px; border-radius: 30px; flex-direction: column; }
+        /* CARD */
+        .card-wrapper { position: relative; background: white; box-shadow: 0 30px 60px rgba(0,0,0,0.3); overflow: hidden; display: flex; transition: width 0.3s, height 0.3s; transform-style: preserve-3d; border-radius: 24px; }
+        .format-landscape { width: 480px; height: 280px; }
+        .format-portrait { width: 320px; height: 568px; flex-direction: column; }
 
-        /* GLARE EFFECT LAYER */
-        .layer-glare {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4) 0%, transparent 60%);
-            z-index: 20; pointer-events: none; opacity: 0; transition: opacity 0.2s;
-            mix-blend-mode: overlay;
+        @media (max-width: 500px) {
+            .format-landscape { width: 340px; height: 200px; }
+            .format-portrait { width: 280px; height: 500px; }
         }
 
-        /* LAYERS */
-        .layer-base { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1; }
-        .layer-texture { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; mix-blend-mode: overlay; pointer-events: none; }
-        .layer-finish { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 3; pointer-events: none; }
+        .layer-base, .layer-texture, .layer-finish { position: absolute; top:0; left:0; width:100%; height:100%; }
+        .layer-base { z-index: 1; }
+        .layer-texture { z-index: 2; mix-blend-mode: overlay; pointer-events: none; }
+        .layer-finish { z-index: 3; pointer-events: none; }
+        .layer-glare { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 20; pointer-events: none; mix-blend-mode: overlay; opacity: 0; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.6) 0%, transparent 60%); transition: opacity 0.2s; }
+        
         .c-content { display: flex; width: 100%; height: 100%; z-index: 10; position: relative; }
 
-        /* THEMES */
+        /* THEMES & FX */
         .theme-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         .theme-linkedin { background: linear-gradient(135deg, #0077b5, #005582); }
         .theme-twitter { background: linear-gradient(135deg, #1da1f2, #0d8bd9); }
@@ -86,26 +78,34 @@
         .theme-mesh { background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%); background-color: #333; }
         .theme-generic { background: linear-gradient(135deg, #1f2937, #111827); }
 
-        /* FX */
         .fx-noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"); }
         .fx-glass { background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.1) 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3); }
         .fx-carbon { background: radial-gradient(black 15%, transparent 16%) 0 0, radial-gradient(black 15%, transparent 16%) 8px 8px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 0 1px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 8px 9px; background-size: 16px 16px; opacity: 0.2; }
         .fx-vignette { background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.6) 100%); }
 
-        /* QR CODE */
+        /* --- SAFE GLASS QR --- */
         .c-qr { 
             position: absolute; 
-            bottom: 20px; right: 20px;
-            background: white;
-            padding: 4px; 
-            border-radius: 6px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            z-index: 100;
-            display: flex; justify-content: center; align-items: center;
+            bottom: 20px; 
+            right: 20px; 
+            /* High Opacity (0.9) ensures scannability */
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 6px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+            border: 1px solid rgba(255,255,255,0.8);
+            z-index: 100; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            height: auto !important; 
+            width: auto !important;
         }
         .format-landscape.style-classic .c-qr { bottom: 20px; right: 20px; top: auto; }
 
-        /* ELEMENTS */
+        /* CONTENT STYLES */
         .style-classic .c-left { width: 35%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.2); }
         .format-portrait.style-classic .c-left { height: 35%; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.2); border-right: none; }
         .style-classic .c-right { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: center; color: white; }
@@ -124,6 +124,8 @@
         .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; }
         .c-stat-emoji { font-size: 13px; }
         .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
+        
+        /* Link Tag (Hidden by default) */
         .c-tag { display: none; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
 
         .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -133,375 +135,7 @@
         .hidden-file { display: none; }
         .qr-controls { margin-top: 15px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
         .free-mode-toggle { margin-top: 15px; padding: 10px; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .drag-el { cursor: move; position: relative; user-select: none; }
-        .drag-el:hover { outline: 1px dashed rgba(255,255,255,0.5); }
-        .free-mode .c-content { display: block; }
-        .free-mode .c-left { position: absolute; top: 30px; left: 30px; border: none !important; width: auto !important; height: auto !important; }
-        .free-mode .c-right { position: absolute; top: 30px; left: 150px; width: auto !important; padding: 0 !important; }
-        .free-mode .c-qr { position: absolute; }
-    </style>
-</head>
-<body onload="initApp()">
+        .reset-btn { font-size: 10px; color: #d32f2f; cursor: pointer; text-decoration: underline; background: none; border: none; }
 
-<div id="loader"><h2>Loading...</h2></div>
-
-<div class="app-container">
-    <div class="input-panel">
-        <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">3D Tilt • Drag • Stats</div>
-
-        <div class="control-section">
-            <div class="control-title">1. Content</div>
-            <input type="text" class="smart-input" id="linkInput" placeholder="Paste link..." oninput="analyzeLink()">
-            <div class="drop-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
-                <i class="fas fa-cloud-upload-alt"></i> <span>Drag & Drop or Paste</span>
-                <input type="file" id="fileInput" class="hidden-file" accept="image/*" onchange="handleFileSelect(this)">
-            </div>
-        </div>
-
-        <div class="control-section">
-            <div class="control-title">2. Layout</div>
-            <div class="option-grid">
-                <button class="option-btn active" onclick="setFormat('landscape', this)">Landscape</button>
-                <button class="option-btn" onclick="setFormat('portrait', this)">Portrait</button>
-            </div>
-            <div class="option-grid">
-                <button class="option-btn active" onclick="setStyle('classic', this)">Classic</button>
-                <button class="option-btn" onclick="setStyle('modern', this)">Modern</button>
-            </div>
-            <div class="free-mode-toggle">
-                <div style="font-size:11px; font-weight:700; color:#e65100;">🔓 UNLOCK POSITIONING</div>
-                <input type="checkbox" id="freeModeCheck" onchange="toggleFreeMode(this)">
-            </div>
-        </div>
-
-        <div class="control-section">
-            <div class="control-title">3. Finishes</div>
-            <div class="texture-grid">
-                <button class="option-btn active" onclick="setTheme('default', this)">Base</button>
-                <button class="option-btn" onclick="setTheme('theme-gold', this)">Gold</button>
-                <button class="option-btn" onclick="setTheme('theme-mesh', this)">Mesh</button>
-            </div>
-            <div class="fx-grid">
-                <button class="option-btn" onclick="toggleFx('fx-glass', this)">Glass</button>
-                <button class="option-btn" onclick="toggleFx('fx-noise', this)">Grain</button>
-                <button class="option-btn" onclick="toggleFx('fx-carbon', this)">Carbon</button>
-                <button class="option-btn" onclick="toggleFx('fx-vignette', this)">Vignette</button>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <div class="control-title">4. Data & QR</div>
-            <input type="text" class="std-input" id="inName" placeholder="Name" oninput="renderCard()">
-            <input type="text" class="std-input" id="inTitle" placeholder="Subtitle" oninput="renderCard()">
-            <input type="text" class="std-input" id="inContact" placeholder="Contact Info" oninput="renderCard()">
-            
-            <div class="sub-label" style="margin-top:10px;">STATS</div>
-            <div class="preset-bar">
-                <button class="preset-btn" onclick="setEmojis('📸','❤️','👤')">Insta</button>
-                <button class="preset-btn" onclick="setEmojis('🤝','👥','📄')">LinkedIn</button>
-            </div>
-            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji1" value="📸" oninput="renderCard()"><input type="text" class="std-input" id="inStat1" placeholder="Post Count" oninput="renderCard()"></div>
-            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji2" value="❤️" oninput="renderCard()"><input type="text" class="std-input" id="inStat2" placeholder="Followers" oninput="renderCard()"></div>
-            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji3" value="👤" oninput="renderCard()"><input type="text" class="std-input" id="inStat3" placeholder="Following" oninput="renderCard()"></div>
-
-            <div class="qr-controls">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span style="font-size:11px; font-weight:bold; color:#555;">QR CODE</span>
-                    <input type="checkbox" onchange="toggleQR(this)" checked>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:10px; color:#666;">Size:</span>
-                    <input type="range" id="qrSize" min="30" max="120" value="50" oninput="generateQR()">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="preview-panel" id="previewPanel">
-        <div class="card-wrapper format-landscape style-classic" id="captureCard">
-            <div class="layer-base theme-generic" id="cardTheme"></div>
-            <div class="layer-texture" id="cardTexture"></div>
-            <div class="layer-finish" id="cardFinish"></div>
-            <div class="layer-glare" id="cardGlare"></div> <div class="c-content" id="cardContent">
-                <div class="c-left" id="dragAvatar"><div class="c-avatar" id="outAvatar">IM</div></div>
-                <div class="c-right" id="dragText">
-                    <div class="c-handle" id="outSource"><i class="fas fa-globe"></i> WEBSITE</div>
-                    <div class="c-name" id="outName">MYBRAND</div>
-                    
-                    <div class="c-title-row" id="outTitleRow" style="display:none;"><i class="fas fa-briefcase"></i> <span id="outTitle">Official Page</span></div>
-
-                    <div class="c-stats-row" id="outStats" style="display:none;">
-                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji1">📸</span> <span id="valStat1">0</span></div>
-                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji2">❤️</span> <span id="valStat2">0</span></div>
-                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji3">👤</span> <span id="valStat3">0</span></div>
-                    </div>
-
-                    <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact Info</span></div>
-                    <div class="c-tag" id="outLink"></div>
-                </div>
-            </div>
-            <div class="c-qr drag-el" id="qrContainer"></div>
-        </div>
-
-        <div class="actions" style="display:flex; gap:10px;">
-            <button class="btn-dl btn-png" onclick="downloadPNG()"><i class="fas fa-image"></i> PNG</button>
-            <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-        </div>
-        <p style="margin-top:10px; font-size:11px; color:#666;">Move cursor over card to see 3D effect!</p>
-    </div>
-</div>
-
-<script>
-    let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com" };
-    let isFreeMode = false;
-
-    function initApp() {
-        document.getElementById('loader').style.display='none';
-        generateQR(); 
-        initDrag();
-        init3D(); // Start Physics
-    }
-
-    // --- 3D TILT ENGINE ---
-    function init3D() {
-        const panel = document.getElementById('previewPanel');
-        const card = document.getElementById('captureCard');
-        const glare = document.getElementById('cardGlare');
-
-        panel.addEventListener('mousemove', (e) => {
-            if(isFreeMode) return; // Disable tilt when dragging elements to avoid confusion
-
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            
-            const rotateX = ((y - centerY) / centerY) * -10; // Max 10 deg rotation
-            const rotateY = ((x - centerX) / centerX) * 10;
-
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            
-            // Glare Logic
-            glare.style.opacity = '1';
-            glare.style.transform = `translate(${x}px, ${y}px)`;
-            glare.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.3) 0%, transparent 80%)`;
-        });
-
-        panel.addEventListener('mouseleave', () => {
-            card.style.transform = `perspective(1000px) rotateX(0) rotateY(0)`;
-            glare.style.opacity = '0';
-        });
-    }
-
-    // --- DRAG LOGIC ---
-    function toggleFreeMode(cb) {
-        isFreeMode = cb.checked;
-        const card = document.getElementById('captureCard');
-        const av = document.getElementById('dragAvatar');
-        const txt = document.getElementById('dragText');
-        
-        if(isFreeMode) {
-            card.classList.add('free-mode');
-            av.classList.add('drag-el');
-            txt.classList.add('drag-el');
-            card.style.transform = "none"; // Reset 3D
-        } else {
-            card.classList.remove('free-mode');
-            av.classList.remove('drag-el');
-            txt.classList.remove('drag-el');
-            av.style.top = ''; av.style.left = '';
-            txt.style.top = ''; txt.style.left = '';
-            // Don't reset QR, users like to keep that custom
-        }
-    }
-
-    function initDrag() {
-        const els = [document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')];
-        let activeEl = null;
-        let startX=0, startY=0, initLeft=0, initTop=0;
-
-        els.forEach(el => {
-            el.addEventListener('mousedown', (e) => {
-                if(!isFreeMode && el.id !== 'qrContainer') return; 
-                if(!isFreeMode) return; 
-
-                activeEl = el;
-                e.preventDefault();
-                startX = e.clientX;
-                startY = e.clientY;
-                initLeft = activeEl.offsetLeft;
-                initTop = activeEl.offsetTop;
-                
-                if(getComputedStyle(activeEl).position !== 'absolute') {
-                    activeEl.style.position = 'absolute';
-                    activeEl.style.left = initLeft + 'px';
-                    activeEl.style.top = initTop + 'px';
-                    activeEl.style.bottom = 'auto'; 
-                    activeEl.style.right = 'auto';
-                }
-            });
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if(!activeEl) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            activeEl.style.left = (initLeft + dx) + 'px';
-            activeEl.style.top = (initTop + dy) + 'px';
-            activeEl.style.bottom = 'auto';
-            activeEl.style.right = 'auto';
-        });
-
-        document.addEventListener('mouseup', () => { activeEl = null; });
-    }
-
-    // --- CORE LOGIC ---
-    function analyzeLink() {
-        const urlRaw = document.getElementById('linkInput').value.trim();
-        if(!urlRaw) return;
-        cardState.fullUrl = urlRaw.startsWith('http') ? urlRaw : 'https://' + urlRaw;
-        
-        let url = urlRaw.replace(/^https?:\/\//, '').replace('www.', '');
-        let parts = url.split('/');
-        let domain = parts[0];
-        let handle = parts[1] || parts[0];
-
-        let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
-        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; handle=handle.split('?')[0]; setEmojis('📸','❤️','👤'); }
-        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); }
-        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
-
-        updateBaseTheme(newTheme, newSource, newIcon);
-        cardState.name = handle;
-        cardState.link = domain + "/" + handle;
-        document.getElementById('inName').value = handle;
-        applyImage(`https://unavatar.io/${domain}/${handle}`);
-        generateQR();
-        renderCard();
-    }
-
-    function renderCard() {
-        const inName = document.getElementById('inName').value;
-        const inTitle = document.getElementById('inTitle').value;
-        const inContact = document.getElementById('inContact').value;
-        
-        document.getElementById('outName').innerText = inName || cardState.name;
-        document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
-        
-        const linkEl = document.getElementById('outLink');
-        if(cardState.link) { linkEl.style.display = 'inline-block'; linkEl.innerText = cardState.link; } else { linkEl.style.display = 'none'; }
-
-        const titleRow = document.getElementById('outTitleRow');
-        if(inTitle) { titleRow.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } 
-        else { titleRow.style.display = 'none'; }
-
-        const contactRow = document.getElementById('outContactRow');
-        if(inContact) { contactRow.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } 
-        else { contactRow.style.display = 'none'; }
-
-        const s1 = document.getElementById('inStat1').value;
-        const s2 = document.getElementById('inStat2').value;
-        const s3 = document.getElementById('inStat3').value;
-        const statsRow = document.getElementById('outStats');
-
-        if(s1 || s2 || s3) {
-            statsRow.style.display = 'flex';
-            document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value;
-            document.getElementById('valStat1').innerText = s1 || "-";
-            document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value;
-            document.getElementById('valStat2').innerText = s2 || "-";
-            document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value;
-            document.getElementById('valStat3').innerText = s3 || "-";
-        } else {
-            statsRow.style.display = 'none';
-        }
-
-        const avatar = document.getElementById('outAvatar');
-        if(!avatar.querySelector('img') || avatar.querySelector('img').style.display==='none') {
-            avatar.innerText = (inName || cardState.name).substring(0,2).toUpperCase();
-        }
-    }
-
-    function generateQR() {
-        const qrBox = document.getElementById('qrContainer');
-        const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked;
-        const size = document.getElementById('qrSize').value;
-
-        if (!isChecked) { qrBox.style.display = 'none'; return; }
-
-        qrBox.style.display = 'flex';
-        qrBox.innerHTML = "";
-        
-        new QRCode(qrBox, {
-            text: cardState.fullUrl,
-            width: parseInt(size),
-            height: parseInt(size),
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.L
-        });
-    }
-
-    // UTILS
-    function toggleQR(cb) { generateQR(); }
-    function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
-    function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
-    function applyImage(url) { document.getElementById('outAvatar').innerHTML = `<img src="${url}" class="c-img" onerror="this.parentNode.innerText='IM'">`; }
-    function setTheme(t, b) { document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; toggleActive(b); }
-    function toggleFx(f, b) { 
-        const l = ['fx-noise','fx-carbon','fx-glass','fx-holo','fx-vignette'].includes(f) ? 'cardTexture' : 'cardFinish';
-        const el = document.getElementById(l);
-        if(el.classList.contains(f)) { el.classList.remove(f); b.classList.remove('active'); }
-        else { el.className = l === 'cardTexture' ? 'layer-texture' : 'layer-finish'; el.classList.add(f); b.classList.add('active'); }
-    }
-    function setFormat(f, b) { document.getElementById('captureCard').className = `card-wrapper format-${f} style-${document.querySelector('.style-modern.active') ? 'modern' : 'classic'}`; toggleActive(b); }
-    function setStyle(s, b) { document.getElementById('captureCard').className = `card-wrapper format-${document.querySelector('.option-btn[onclick*="format-landscape"].active') ? 'landscape' : 'portrait'} style-${s}`; toggleActive(b); }
-    function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
-
-    // DOWNLOAD
-    function downloadPNG() { 
-        // Temporarily reset transform for clean screenshot
-        const card = document.getElementById('captureCard');
-        const prevTransform = card.style.transform;
-        card.style.transform = "none";
-        
-        html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
-            const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click();
-            card.style.transform = prevTransform; // Restore 3D
-        }); 
-    }
-    
-    function downloadPDF() { 
-        const card = document.getElementById('captureCard');
-        const prevTransform = card.style.transform;
-        card.style.transform = "none";
-
-        html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
-            const pdf = new window.jspdf.jsPDF({ 
-                orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', 
-                unit:'px', 
-                format:[c.width/3, c.height/3] 
-            });
-            pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3);
-            
-            // Full Page Link fix
-            pdf.link(0, 0, c.width/3, c.height/3, { url: cardState.fullUrl });
-            
-            pdf.save(`Card_${cardState.name}.pdf`); 
-            card.style.transform = prevTransform;
-        }); 
-    }
-
-    const dropArea = document.getElementById('dropArea');
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false));
-    dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
-    document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image')) applyImage(URL.createObjectURL(i.getAsFile())); }); });
-    function handleFileSelect(i) { handleFiles(i.files); }
-    function handleFiles(f) { if(f[0]) applyImage(URL.createObjectURL(f[0])); }
-</script>
-</body>
-</html>
+        /* CUSTOM LAYOUT STATE */
+        .
