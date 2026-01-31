@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Stable Fetch</title>
+    <title>Magic Card: Fail-Safe</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -31,10 +31,15 @@
         .sub-label { font-size: 10px; font-weight: 700; color: #6b7280; margin-bottom: 6px; display: block; }
 
         /* INPUTS */
-        .smart-input, .std-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #f9fafb; margin-bottom: 8px; box-sizing: border-box; }
+        .smart-input, .std-input { width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #f9fafb; margin-bottom: 8px; box-sizing: border-box; transition: 0.3s; }
         .stat-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .emoji-input { width: 40px; text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
         .text-input { flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
+
+        /* STATUS COLORS */
+        .status-fetching { border-color: #f59e0b !important; background: #fffbeb !important; }
+        .status-success { border-color: #10b981 !important; background: #ecfdf5 !important; }
+        .status-error { border-color: #ef4444 !important; background: #fef2f2 !important; }
 
         /* PRESETS */
         .preset-bar { display: flex; gap: 5px; margin-bottom: 10px; }
@@ -82,24 +87,15 @@
         .fx-carbon { background: radial-gradient(black 15%, transparent 16%) 0 0, radial-gradient(black 15%, transparent 16%) 8px 8px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 0 1px, radial-gradient(rgba(255,255,255,0.1) 15%, transparent 20%) 8px 9px; background-size: 16px 16px; opacity: 0.2; }
         .fx-vignette { background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.6) 100%); }
 
-        /* QR CODE: SCANNABLE FIXED */
+        /* QR CODE */
         .c-qr { 
-            position: absolute; 
-            bottom: 20px; right: 20px;
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(4px);
-            padding: 5px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            z-index: 100;
-            display: flex; justify-content: center; align-items: center;
+            position: absolute; bottom: 20px; right: 20px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px);
+            padding: 5px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            z-index: 100; display: flex; justify-content: center; align-items: center;
             width: auto; height: auto;
         }
-        .c-qr img, .c-qr canvas {
-            display: block;
-            width: var(--qr-size, 50px);
-            height: var(--qr-size, 50px);
-        }
+        .c-qr img, .c-qr canvas { display: block; width: var(--qr-size, 50px); height: var(--qr-size, 50px); }
         .format-landscape.style-classic .c-qr { bottom: 20px; right: 20px; top: auto; }
 
         /* CONTENT STYLES */
@@ -149,7 +145,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Complete Suite v4.2</div>
+        <div class="subtitle">Complete Suite v4.3</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -266,7 +262,7 @@
 
     function initApp() {
         document.getElementById('loader').style.display='none';
-        generateQR(); // Init QR
+        generateQR(); 
         initDrag();
         init3D(); 
     }
@@ -280,7 +276,6 @@
         qrBox.style.display = 'flex'; 
         qrBox.innerHTML = "";
         
-        // HIGH DEFINITION GENERATION (256px)
         new QRCode(qrBox, { 
             text: cardState.fullUrl, 
             width: 256, 
@@ -289,23 +284,82 @@
             colorLight : "rgba(255,255,255,0)", 
             correctLevel : QRCode.CorrectLevel.M 
         });
-        
-        resizeQR(); // Apply visual size
+        resizeQR(); 
     }
 
     function resizeQR() {
         const size = document.getElementById('qrSize').value;
-        const qrContainer = document.getElementById('qrContainer');
-        qrContainer.style.setProperty('--qr-size', size + 'px');
+        document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px');
     }
 
-    // --- DOWNLOAD LOGIC ---
+    // --- CONTENT LOGIC (FAIL-SAFE) ---
+    function analyzeLink() {
+        const input = document.getElementById('linkInput');
+        const urlRaw = input.value.trim();
+        if(!urlRaw) return;
+        
+        input.classList.add('status-fetching'); // VISUAL FEEDBACK
+        
+        if (!urlRaw.startsWith('http')) {
+            cardState.fullUrl = 'https://' + urlRaw;
+        } else {
+            cardState.fullUrl = urlRaw;
+        }
+        
+        let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace('www.', '');
+        let parts = displayUrl.split('/');
+        let domain = parts[0];
+        let handle = parts[1] || parts[0];
+
+        if(domain.includes('instagram.com')) { handle = handle.split('?')[0]; }
+
+        let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
+        let avatarUrl = `https://unavatar.io/${domain}/${handle}`; 
+
+        if (domain.includes('instagram.com')) { 
+            newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; 
+            setEmojis('📸','❤️','👤'); 
+            avatarUrl = `https://unavatar.io/instagram/${handle}`; 
+        }
+        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); }
+        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); avatarUrl = `https://unavatar.io/twitter/${handle}`; }
+
+        updateBaseTheme(newTheme, newSource, newIcon);
+        cardState.name = handle;
+        document.getElementById('inName').value = handle;
+        
+        // FAIL-SAFE IMAGE LOADING
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = `https://wsrv.nl/?url=${encodeURIComponent(avatarUrl)}`;
+        
+        img.onload = () => {
+            document.getElementById('outAvatar').innerHTML = "";
+            document.getElementById('outAvatar').appendChild(img);
+            img.className = "c-img";
+            input.classList.remove('status-fetching');
+            input.classList.add('status-success');
+        };
+        
+        img.onerror = () => {
+            // FALLBACK TO UI AVATARS (If Instagram Blocks)
+            console.log("Fetch failed, using fallback.");
+            const fallbackUrl = `https://ui-avatars.com/api/?name=${handle}&background=random&color=fff&size=128`;
+            document.getElementById('outAvatar').innerHTML = `<img src="${fallbackUrl}" class="c-img">`;
+            input.classList.remove('status-fetching');
+            input.classList.add('status-error'); // Orange border warns user to upload manually
+        };
+        
+        generateQR();
+        renderCard();
+    }
+
+    // --- DOWNLOAD LOGIC (FIXED PDF LINK) ---
     function downloadPNG() { 
         const card = document.getElementById('captureCard'); 
         const glare = document.getElementById('cardGlare');
         const prevTransform = card.style.transform;
         
-        // Force Hero Tilt
         card.style.transform = `perspective(1000px) rotateX(-5deg) rotateY(5deg)`;
         glare.style.opacity = '0.4';
         glare.style.background = `radial-gradient(circle at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 60%)`;
@@ -322,16 +376,17 @@
         const card = document.getElementById('captureCard'); 
         const prevTransform = card.style.transform;
         
-        // FORCE FLAT for PDF
-        card.style.transform = "none";
+        card.style.transform = "none"; // FORCE FLAT FOR PDF
 
         setTimeout(() => {
             html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { 
                 const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] });
                 pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3);
                 
-                // Add Link over entire page
-                pdf.link(0, 0, c.width/3, c.height/3, { url: cardState.fullUrl });
+                // LINK FIX: Use internal page size for link geometry
+                const pdfW = pdf.internal.pageSize.getWidth();
+                const pdfH = pdf.internal.pageSize.getHeight();
+                pdf.link(0, 0, pdfW, pdfH, { url: cardState.fullUrl });
                 
                 pdf.save(`Card_${cardState.name}.pdf`); 
                 card.style.transform = prevTransform; 
@@ -339,74 +394,19 @@
         }, 100);
     }
 
-    // --- CONTENT LOGIC (FIXED FETCHING) ---
-    function analyzeLink() {
-        const urlRaw = document.getElementById('linkInput').value.trim();
-        if(!urlRaw) return;
-        
-        if (!urlRaw.startsWith('http')) {
-            cardState.fullUrl = 'https://' + urlRaw;
-        } else {
-            cardState.fullUrl = urlRaw;
-        }
-        
-        let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace('www.', '');
-        let parts = displayUrl.split('/');
-        let domain = parts[0];
-        let handle = parts[1] || parts[0];
-
-        if(domain.includes('instagram.com')) {
-            handle = handle.split('?')[0]; 
-        }
-
-        let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
-        let avatarUrl = `https://unavatar.io/${domain}/${handle}`; 
-
-        if (domain.includes('instagram.com')) { 
-            newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; 
-            setEmojis('📸','❤️','👤'); 
-            avatarUrl = `https://unavatar.io/instagram/${handle}`; 
-        }
-        else if (domain.includes('linkedin.com')) { 
-            newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; 
-            setEmojis('🤝','👥','📄'); 
-        }
-        else if (domain.includes('twitter.com') || domain.includes('x.com')) { 
-            newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; 
-            setEmojis('🐦','🔁','❤️'); 
-            avatarUrl = `https://unavatar.io/twitter/${handle}`;
-        }
-
-        updateBaseTheme(newTheme, newSource, newIcon);
-        cardState.name = handle;
-        document.getElementById('inName').value = handle;
-        
-        // APPLY PROXY FIX FOR IMAGE
-        applyImage(`https://wsrv.nl/?url=${encodeURIComponent(avatarUrl)}`);
-        
-        generateQR();
-        renderCard();
-    }
-
-    // --- RENDER ---
+    // --- RENDER & DRAG (UNCHANGED) ---
     function renderCard() {
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
         const inContact = document.getElementById('inContact').value;
         document.getElementById('outName').innerText = inName || cardState.name;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
-        
-        // Hide Link Pill Logic
-        document.getElementById('outLink').style.display = 'none';
-
+        document.getElementById('outLink').style.display = 'none'; 
         const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
         const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
         const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
         if(s1 || s2 || s3) { sr.style.display = 'flex'; document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value; document.getElementById('valStat1').innerText = s1 || "-"; document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value; document.getElementById('valStat2').innerText = s2 || "-"; document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value; document.getElementById('valStat3').innerText = s3 || "-"; } else { sr.style.display = 'none'; }
-        const av = document.getElementById('outAvatar'); if(!av.querySelector('img') || av.querySelector('img').style.display==='none') { av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); }
     }
-    
-    // --- POSITIONING ---
     function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
     function resetLayout() { const c=document.getElementById('captureCard'); const a=document.getElementById('dragAvatar'); const t=document.getElementById('dragText'); const q=document.getElementById('qrContainer'); c.classList.remove('custom-layout'); a.style=""; t.style=""; q.style=""; q.style.bottom='20px'; q.style.right='20px'; }
     function initDrag() { const els=[document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')]; let activeEl=null; let startX=0; let startY=0; let initLeft=0; let initTop=0; els.forEach(el=>{el.addEventListener('mousedown',(e)=>{if(!isFreeMode)return;activeEl=el;e.preventDefault();startX=e.clientX;startY=e.clientY;initLeft=activeEl.offsetLeft;initTop=activeEl.offsetTop;if(getComputedStyle(activeEl).position!=='absolute'){activeEl.style.position='absolute';activeEl.style.left=initLeft+'px';activeEl.style.top=initTop+'px';activeEl.style.bottom='auto';activeEl.style.right='auto';}});}); document.addEventListener('mousemove',(e)=>{if(!activeEl)return;const dx=e.clientX-startX;const dy=e.clientY-startY;activeEl.style.left=(initLeft+dx)+'px';activeEl.style.top=(initTop+dy)+'px';}); document.addEventListener('mouseup',()=>{activeEl=null;}); }
@@ -421,13 +421,14 @@
     function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     
-    // PROXY FIX
-    function applyImage(url) { 
-        document.getElementById('outAvatar').innerHTML = `<img src="${url}" crossorigin="anonymous" class="c-img" onerror="this.parentNode.innerText='IM'">`; 
+    // FILE HANDLING
+    const dropArea = document.getElementById('dropArea'); ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false)); dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image')) applyImageFromBlob(i.getAsFile()); }); });
+    function handleFileSelect(i) { handleFiles(i.files); } 
+    function handleFiles(f) { if(f[0]) applyImageFromBlob(f[0]); }
+    function applyImageFromBlob(blob) {
+        const url = URL.createObjectURL(blob);
+        document.getElementById('outAvatar').innerHTML = `<img src="${url}" class="c-img">`;
     }
-
-    const dropArea = document.getElementById('dropArea'); ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false)); dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image')) applyImage(URL.createObjectURL(i.getAsFile())); }); });
-    function handleFileSelect(i) { handleFiles(i.files); } function handleFiles(f) { if(f[0]) applyImage(URL.createObjectURL(f[0])); }
 </script>
 </body>
 </html>
