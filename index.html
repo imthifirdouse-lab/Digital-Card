@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Live Media</title>
+    <title>Magic Card: Freeze Frame</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -97,14 +97,12 @@
         .style-classic .c-left { width: 35%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.2); }
         .format-portrait.style-classic .c-left { height: 35%; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.2); border-right: none; }
         .style-classic .c-right { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: center; color: white; }
-        
-        /* AVATAR - Handles both IMG and VIDEO */
         .style-classic .c-avatar { width: 90px; height: 90px; border-radius: 50%; background: white; border: 4px solid rgba(255,255,255,0.3); display: flex; justify-content: center; align-items: center; overflow: hidden; color: #333; font-weight: 800; font-size: 30px; }
-        .style-modern .c-avatar { width: 100px; height: 100px; border-radius: 25px; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; overflow: hidden; margin-bottom: 15px; color: #333; font-weight: 800; font-size: 35px; border: 2px solid rgba(255,255,255,0.5); }
 
         .style-modern .c-content { flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; }
+        .style-modern .c-avatar { width: 100px; height: 100px; border-radius: 25px; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; overflow: hidden; margin-bottom: 15px; color: #333; font-weight: 800; font-size: 35px; border: 2px solid rgba(255,255,255,0.5); }
 
-        .c-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .c-img { width: 100%; height: 100%; object-fit: cover; }
         .c-handle { font-size: 11px; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .c-name { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); white-space: nowrap; }
         
@@ -115,8 +113,6 @@
         .c-stat-emoji { font-size: 13px; }
         .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
         
-        .c-tag { display: none; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
-
         .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-png { background: #1f2937; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
@@ -143,13 +139,13 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Live Media Suite v7.0</div>
+        <div class="subtitle">Freeze-Frame Engine v7.1</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
             <input type="text" class="smart-input" id="linkInput" placeholder="Paste link..." oninput="analyzeLink()">
             <div class="drop-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
-                <i class="fas fa-video"></i> <span>Drag & Drop Logo / GIF / Video</span>
+                <i class="fas fa-cloud-upload-alt"></i> <span>Drag & Drop or Paste</span>
                 <input type="file" id="fileInput" class="hidden-file" accept="image/*,video/*" onchange="handleFileSelect(this)">
             </div>
         </div>
@@ -240,7 +236,6 @@
                     </div>
 
                     <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact Info</span></div>
-                    <div class="c-tag" id="outLink"></div>
                 </div>
             </div>
             <div class="c-qr drag-el" id="qrContainer"></div>
@@ -250,7 +245,7 @@
             <button class="btn-dl btn-png" onclick="downloadPNG()"><i class="fas fa-image"></i> PNG (3D)</button>
             <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF (Flat)</button>
         </div>
-        <p style="margin-top:10px; font-size:11px; color:#666;">Note: Animations export as static snapshots.</p>
+        <p style="margin-top:10px; font-size:11px; color:#666;">PNG = Social Media (3D) | PDF = Clickable (Flat)</p>
     </div>
 </div>
 
@@ -290,7 +285,7 @@
         document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px');
     }
 
-    // --- ROBUST AUTO-DETECT ---
+    // --- ANALYZE LINK ---
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
         if(!urlRaw) return;
@@ -341,7 +336,7 @@
         renderCard();
     }
 
-    // --- RENDER CARD ---
+    // --- RENDER ---
     function renderCard() {
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
@@ -349,8 +344,6 @@
         document.getElementById('outName').innerText = inName || cardState.name;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
         
-        document.getElementById('outLink').style.display = 'none'; 
-
         const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
         const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
         const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
@@ -362,6 +355,7 @@
         }
     }
     
+    // --- POSITIONING ---
     function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
     function resetLayout() { const c=document.getElementById('captureCard'); const a=document.getElementById('dragAvatar'); const t=document.getElementById('dragText'); const q=document.getElementById('qrContainer'); c.classList.remove('custom-layout'); a.style=""; t.style=""; q.style=""; q.style.bottom='20px'; q.style.right='20px'; }
     function initDrag() { const els=[document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')]; let activeEl=null; let startX=0; let startY=0; let initLeft=0; let initTop=0; els.forEach(el=>{el.addEventListener('mousedown',(e)=>{if(!isFreeMode)return;activeEl=el;e.preventDefault();startX=e.clientX;startY=e.clientY;initLeft=activeEl.offsetLeft;initTop=activeEl.offsetTop;if(getComputedStyle(activeEl).position!=='absolute'){activeEl.style.position='absolute';activeEl.style.left=initLeft+'px';activeEl.style.top=initTop+'px';activeEl.style.bottom='auto';activeEl.style.right='auto';}});}); document.addEventListener('mousemove',(e)=>{if(!activeEl)return;const dx=e.clientX-startX;const dy=e.clientY-startY;activeEl.style.left=(initLeft+dx)+'px';activeEl.style.top=(initTop+dy)+'px';}); document.addEventListener('mouseup',()=>{activeEl=null;}); }
@@ -377,26 +371,38 @@
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     
-    // DOWNLOAD HELPERS
+    // --- DOWNLOAD LOGIC (FREEZE FRAME) ---
     async function prepareVideoForCapture(card) {
-        // If there's a video, pause it, draw to canvas, replace with canvas
+        // Find video
         const video = card.querySelector('video');
         if (video) {
-            video.pause();
+            video.pause(); // FREEZE IT
+            
+            // Create a temporary canvas
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth || video.clientWidth;
+            canvas.height = video.videoHeight || video.clientHeight;
             const ctx = canvas.getContext('2d');
+            
+            // Draw the current video frame to canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Create temp img to swap
+            // Create a dedicated replacement Image (more reliable than direct canvas)
             const img = document.createElement('img');
             img.src = canvas.toDataURL('image/png');
             img.className = video.className; // Keep styles
-            img.id = 'temp-video-capture';
+            img.style.width = getComputedStyle(video).width;
+            img.style.height = getComputedStyle(video).height;
+            img.style.objectFit = getComputedStyle(video).objectFit;
+            img.style.borderRadius = getComputedStyle(video).borderRadius;
             
+            // Wait for it to load to avoid flickering
+            await new Promise(r => img.onload = r);
+            
+            // Swap
             video.style.display = 'none';
             video.parentNode.insertBefore(img, video);
+            
             return { video, img };
         }
         return null;
@@ -410,7 +416,6 @@
         }
     }
 
-    // DOWNLOAD
     function downloadPNG() { 
         const card = document.getElementById('captureCard'); 
         const glare = document.getElementById('cardGlare');
@@ -448,7 +453,7 @@
         }, 100);
     }
 
-    // FILE HANDLING - SUPPORT VIDEO & IMAGE
+    // FILE HANDLING
     const dropArea = document.getElementById('dropArea'); 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false)); 
     dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); 
@@ -461,11 +466,10 @@
         const url = URL.createObjectURL(blob);
         const container = document.getElementById('outAvatar');
         
-        // VIDEO CHECK
         if (blob.type.startsWith('video/')) {
+            // Must have 'muted' to autoplay in Chrome
             container.innerHTML = `<video src="${url}" class="c-img" autoplay loop muted playsinline></video>`;
         } else {
-            // IMAGE/GIF
             container.innerHTML = `<img src="${url}" class="c-img">`;
         }
     }
