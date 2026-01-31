@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Color Engine</title>
+    <title>Magic Card: Final Master</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -37,6 +37,11 @@
         .emoji-input { width: 40px; text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
         .text-input { flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
 
+        /* SLIDERS */
+        .range-group { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .range-label { font-size: 10px; font-weight: 700; color: #666; width: 40px; }
+        input[type=range] { flex: 1; accent-color: var(--primary); }
+
         /* COLOR PICKERS */
         .color-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .color-input { width: 40px; height: 40px; border: none; border-radius: 8px; cursor: pointer; padding: 0; background: none; }
@@ -61,14 +66,20 @@
             overflow: hidden; display: flex; transition: transform 0.1s cubic-bezier(0.1, 0.1, 0.1, 1); 
             transform-style: preserve-3d; border-radius: 24px; 
             width: 480px; height: 280px;
+            /* Default Text Scale Variables */
+            --name-scale: 1;
+            --title-scale: 1;
+            --stat-scale: 1;
         }
         
         @media (max-width: 600px) {
             .card-wrapper.format-landscape { width: 85vw; max-width: 400px; height: auto; aspect-ratio: 1.71; }
             .card-wrapper.format-portrait { width: 80vw; max-width: 320px; height: auto; aspect-ratio: 0.56; flex-direction: column; }
-            .c-name { font-size: 22px !important; }
-            .c-handle { font-size: 10px !important; }
-            .c-stat-item { font-size: 10px !important; }
+            
+            /* Mobile Text Overrides (Scalable) */
+            .c-name { font-size: calc(22px * var(--name-scale)) !important; }
+            .c-title-row { font-size: calc(11px * var(--title-scale)) !important; }
+            .c-stat-item { font-size: calc(9px * var(--stat-scale)) !important; }
         }
 
         .layer-base, .layer-texture, .layer-finish { position: absolute; top:0; left:0; width:100%; height:100%; }
@@ -120,22 +131,22 @@
         .style-modern .c-avatar { width: 100px; height: 100px; border-radius: 25px; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; overflow: hidden; margin-bottom: 15px; color: #333; font-weight: 800; font-size: 35px; border: 2px solid rgba(255,255,255,0.5); }
 
         .c-img { width: 100%; height: 100%; object-fit: cover; }
-        .c-handle { font-size: 11px; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .c-name { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); white-space: nowrap; }
+        .c-handle { font-size: calc(11px * var(--title-scale)); font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         
-        .c-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; font-weight: 500; opacity: 0.9; }
+        /* SCALABLE ELEMENTS */
+        .c-name { font-size: calc(26px * var(--name-scale)); font-weight: 800; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); white-space: nowrap; }
+        .c-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: calc(13px * var(--title-scale)); font-weight: 500; opacity: 0.9; }
         
         .c-stats-row { display: flex; gap: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); width: fit-content; max-width: 100%; }
         .style-modern .c-stats-row { margin: 0 auto 12px auto; }
-        .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: calc(11px * var(--stat-scale)); font-weight: 700; white-space: nowrap; }
         
         @media (max-width: 600px) {
             .c-stats-row { gap: 4px !important; padding: 4px 8px !important; width: 95% !important; justify-content: center; }
-            .c-stat-item { font-size: 9px !important; }
         }
 
-        .c-stat-emoji { font-size: 13px; }
-        .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
+        .c-stat-emoji { font-size: calc(13px * var(--stat-scale)); }
+        .c-info-row { display: flex; align-items: center; gap: 8px; font-size: calc(12px * var(--title-scale)); margin-bottom: 6px; font-weight: 500; }
         
         .c-tag { display: none; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
 
@@ -174,7 +185,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">v19.0 (Color Engine)</div>
+        <div class="subtitle">v20.0 (Master Build)</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -208,21 +219,13 @@
 
         <div class="control-section">
             <div class="control-title">3. Finishes & Colors</div>
-            
             <div style="margin-bottom: 15px;">
                 <div class="sub-label">CUSTOM GRADIENT</div>
                 <div class="color-group">
-                    <div>
-                        <input type="color" id="col1" class="color-input" value="#1f2937" oninput="setCustomTheme()">
-                        <div class="color-label">Start</div>
-                    </div>
-                    <div>
-                        <input type="color" id="col2" class="color-input" value="#111827" oninput="setCustomTheme()">
-                        <div class="color-label">End</div>
-                    </div>
+                    <div><input type="color" id="col1" class="color-input" value="#1f2937" oninput="setCustomTheme()"><div class="color-label">Start</div></div>
+                    <div><input type="color" id="col2" class="color-input" value="#111827" oninput="setCustomTheme()"><div class="color-label">End</div></div>
                 </div>
             </div>
-
             <div class="sub-label">PRESETS</div>
             <div class="texture-grid">
                 <button class="option-btn active" onclick="setTheme('default', this)">Base</button>
@@ -239,6 +242,14 @@
 
         <div class="control-section">
             <div class="control-title">4. Data & QR</div>
+            
+            <div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:15px;">
+                <div class="sub-label" style="color:#e65100; margin-bottom:5px;">TYPOGRAPHY SCALE</div>
+                <div class="range-group"><span class="range-label">NAME</span><input type="range" id="scaleName" min="0.5" max="1.5" step="0.1" value="1" oninput="renderCard()"></div>
+                <div class="range-group"><span class="range-label">TITLE</span><input type="range" id="scaleTitle" min="0.5" max="1.5" step="0.1" value="1" oninput="renderCard()"></div>
+                <div class="range-group"><span class="range-label">STATS</span><input type="range" id="scaleStats" min="0.5" max="1.5" step="0.1" value="1" oninput="renderCard()"></div>
+            </div>
+
             <input type="text" class="std-input" id="inName" placeholder="Name" oninput="renderCard()">
             <input type="text" class="std-input" id="inTitle" placeholder="Subtitle" oninput="renderCard()">
             <input type="text" class="std-input" id="inPhone" placeholder="Phone Number" oninput="renderCard()">
@@ -311,7 +322,11 @@
 <div class="tap-hint" id="tapHint">👆 Tap card to visit profile</div>
 
 <script>
-    let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com", phone: "", customBg: null };
+    let cardState = { 
+        name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com", phone: "", customBg: null,
+        scales: { name: 1, title: 1, stats: 1 } // New Scale State
+    };
+    
     let isFreeMode = false;
     let uploadedMediaData = null; 
     let userInteracting = false; 
@@ -333,14 +348,58 @@
             const fab = document.getElementById('fabContact');
             if(fab) fab.style.display = 'block';
             
-            // Apply Custom Background if it exists
             if(cardState.customBg) {
                 document.getElementById('cardTheme').style.background = cardState.customBg;
-                document.getElementById('cardTheme').className = 'layer-base'; // clear preset
+                document.getElementById('cardTheme').className = 'layer-base';
+            }
+            // Restore Scales
+            if(cardState.scales) {
+                const c = document.getElementById('captureCard');
+                c.style.setProperty('--name-scale', cardState.scales.name);
+                c.style.setProperty('--title-scale', cardState.scales.title);
+                c.style.setProperty('--stat-scale', cardState.scales.stats);
             }
         }
         init3D(); 
         requestAnimationFrame(autoPlayLoop); 
+    }
+
+    // --- RENDER ---
+    function renderCard() {
+        // SCALES
+        const sName = document.getElementById('scaleName').value;
+        const sTitle = document.getElementById('scaleTitle').value;
+        const sStats = document.getElementById('scaleStats').value;
+        
+        const c = document.getElementById('captureCard');
+        c.style.setProperty('--name-scale', sName);
+        c.style.setProperty('--title-scale', sTitle);
+        c.style.setProperty('--stat-scale', sStats);
+        
+        cardState.scales = { name: sName, title: sTitle, stats: sStats };
+
+        // CONTENT
+        const inName = document.getElementById('inName').value;
+        const inTitle = document.getElementById('inTitle').value;
+        const inContact = document.getElementById('inContact').value;
+        const inPhone = document.getElementById('inPhone').value;
+        
+        cardState.name = inName || cardState.name;
+        cardState.phone = inPhone;
+
+        document.getElementById('outName').innerText = cardState.name;
+        document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
+        
+        const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
+        const pr = document.getElementById('outPhoneRow'); if(inPhone) { pr.style.display = 'flex'; document.getElementById('outPhone').innerText = inPhone; } else { pr.style.display = 'none'; }
+        const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
+        const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
+        if(s1 || s2 || s3) { sr.style.display = 'flex'; document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value; document.getElementById('valStat1').innerText = s1 || "-"; document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value; document.getElementById('valStat2').innerText = s2 || "-"; document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value; document.getElementById('valStat3').innerText = s3 || "-"; } else { sr.style.display = 'none'; }
+        
+        const av = document.getElementById('outAvatar'); 
+        if((!av.querySelector('img') && !av.querySelector('video')) || (av.querySelector('img') && av.querySelector('img').style.display==='none')) { 
+            av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); 
+        }
     }
 
     // --- COLOR ENGINE ---
@@ -348,32 +407,52 @@
         const c1 = document.getElementById('col1').value;
         const c2 = document.getElementById('col2').value;
         const bg = `linear-gradient(135deg, ${c1}, ${c2})`;
-        
-        // Apply
         const themeEl = document.getElementById('cardTheme');
-        themeEl.className = 'layer-base'; // Remove presets
+        themeEl.className = 'layer-base'; 
         themeEl.style.background = bg;
-        
-        // Update State
         cardState.customBg = bg;
-        
-        // UI Feedback: Deselect preset buttons
         document.querySelectorAll('.texture-grid .option-btn').forEach(b => b.classList.remove('active'));
     }
 
     function setTheme(t, b) { 
-        // Reset Custom BG
         document.getElementById('cardTheme').style.background = ''; 
         cardState.customBg = null;
-        
         document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; 
-        
-        // UI
         b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); 
         b.classList.add('active'); 
     }
 
-    // --- VCARD ---
+    // --- HTML EXPORT ---
+    function downloadHTML() {
+        const title = document.getElementById('inName').value || 'Card';
+        const docClone = document.documentElement.cloneNode(true);
+        const uiElements = docClone.querySelectorAll('.input-panel, .actions, p');
+        uiElements.forEach(el => el.remove());
+        const container = docClone.querySelector('.app-container');
+        container.style.justifyContent = 'center'; container.style.alignItems = 'center'; container.style.height = '100vh';
+        
+        if(uploadedMediaData) {
+            const avatarDiv = docClone.querySelector('#outAvatar');
+            if(uploadedMediaData.startsWith('data:video')) {
+               avatarDiv.innerHTML = `<video src="${uploadedMediaData}" class="c-img" autoplay loop muted playsinline></video>`;
+            } else {
+               avatarDiv.innerHTML = `<img src="${uploadedMediaData}" class="c-img">`;
+            }
+        }
+
+        let htmlContent = docClone.outerHTML;
+        const stateJSON = JSON.stringify(cardState);
+        const regex = /let cardState = \{.*?\};/;
+        htmlContent = htmlContent.replace(regex, `let cardState = ${stateJSON};`);
+        const scriptEnd = '<\/script>';
+        const enableFab = `document.getElementById('fabContact').style.display = 'block';`;
+        htmlContent = htmlContent.replace(scriptEnd, `${enableFab}${scriptEnd}`);
+
+        const blob = new Blob([htmlContent], {type: 'text/html'});
+        const a = document.createElement('a'); a.download = `Live_Card_${title}.html`; a.href = URL.createObjectURL(blob); a.click();
+    }
+
+    // --- VCARD & UTILS ---
     function downloadVCard() {
         const name = cardState.name || "Contact";
         const phone = cardState.phone || "";
@@ -433,15 +512,8 @@
         else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); if(parts[1] === 'in' && parts[2]) handle = parts[2].split('?')[0]; }
         else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
         
-        // Only update theme if user hasn't picked a custom one
-        if(!cardState.customBg) {
-            updateBaseTheme(newTheme, newSource, newIcon);
-        } else {
-            // Just update icon/source, keep custom BG
-            cardState.baseClass = newTheme; 
-            cardState.source = newSource; 
-            cardState.icon = newIcon; 
-        }
+        if(!cardState.customBg) updateBaseTheme(newTheme, newSource, newIcon);
+        else { cardState.baseClass = newTheme; cardState.source = newSource; cardState.icon = newIcon; }
         
         if(handle) { cardState.name = handle; document.getElementById('inName').value = handle; }
         generateQR(); renderCard();
@@ -452,62 +524,6 @@
         document.getElementById('cardTheme').className = `layer-base ${c}`; 
     }
 
-    function renderCard() {
-        const inName = document.getElementById('inName').value;
-        const inTitle = document.getElementById('inTitle').value;
-        const inContact = document.getElementById('inContact').value;
-        const inPhone = document.getElementById('inPhone').value;
-        
-        cardState.name = inName || cardState.name;
-        cardState.phone = inPhone;
-
-        document.getElementById('outName').innerText = cardState.name;
-        document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
-        document.getElementById('outLink').style.display = 'none'; 
-        
-        const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
-        const pr = document.getElementById('outPhoneRow'); if(inPhone) { pr.style.display = 'flex'; document.getElementById('outPhone').innerText = inPhone; } else { pr.style.display = 'none'; }
-        const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
-        const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
-        if(s1 || s2 || s3) { sr.style.display = 'flex'; document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value; document.getElementById('valStat1').innerText = s1 || "-"; document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value; document.getElementById('valStat2').innerText = s2 || "-"; document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value; document.getElementById('valStat3').innerText = s3 || "-"; } else { sr.style.display = 'none'; }
-        
-        const av = document.getElementById('outAvatar'); 
-        if((!av.querySelector('img') && !av.querySelector('video')) || (av.querySelector('img') && av.querySelector('img').style.display==='none')) { 
-            av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); 
-        }
-    }
-
-    // --- HTML EXPORT ---
-    function downloadHTML() {
-        const title = document.getElementById('inName').value || 'Card';
-        const docClone = document.documentElement.cloneNode(true);
-        const uiElements = docClone.querySelectorAll('.input-panel, .actions, p');
-        uiElements.forEach(el => el.remove());
-        const container = docClone.querySelector('.app-container');
-        container.style.justifyContent = 'center'; container.style.alignItems = 'center'; container.style.height = '100vh';
-        
-        if(uploadedMediaData) {
-            const avatarDiv = docClone.querySelector('#outAvatar');
-            if(uploadedMediaData.startsWith('data:video')) {
-               avatarDiv.innerHTML = `<video src="${uploadedMediaData}" class="c-img" autoplay loop muted playsinline></video>`;
-            } else {
-               avatarDiv.innerHTML = `<img src="${uploadedMediaData}" class="c-img">`;
-            }
-        }
-
-        let htmlContent = docClone.outerHTML;
-        const stateJSON = JSON.stringify(cardState);
-        const regex = /let cardState = \{.*?\};/;
-        htmlContent = htmlContent.replace(regex, `let cardState = ${stateJSON};`);
-        
-        const scriptEnd = '<\/script>';
-        const enableFab = `document.getElementById('fabContact').style.display = 'block';`;
-        htmlContent = htmlContent.replace(scriptEnd, `${enableFab}${scriptEnd}`);
-
-        const blob = new Blob([htmlContent], {type: 'text/html'});
-        const a = document.createElement('a'); a.download = `Live_Card_${title}.html`; a.href = URL.createObjectURL(blob); a.click();
-    }
-
     function generateQR() { const qrBox = document.getElementById('qrContainer'); const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked; if (!isChecked) { qrBox.style.display = 'none'; return; } qrBox.style.display = 'flex'; qrBox.innerHTML = ""; new QRCode(qrBox, { text: cardState.fullUrl, width: 256, height: 256, colorDark : "#000000", colorLight : "rgba(255,255,255,0)", correctLevel : QRCode.CorrectLevel.M }); resizeQR(); }
     function resizeQR() { const size = document.getElementById('qrSize').value; document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px'); }
     function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
@@ -516,11 +532,7 @@
     
     function enableMotion() { 
         document.getElementById('tapHint').style.display = 'none'; 
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') { 
-            DeviceMotionEvent.requestPermission().then(r => { if (r=='granted') window.addEventListener('deviceorientation', handleOrientation); }); 
-        } else { 
-            window.addEventListener('deviceorientation', handleOrientation); 
-        } 
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') { DeviceMotionEvent.requestPermission().then(r => { if (r=='granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientation', handleOrientation); } 
     }
     
     function handleOrientation(e) { 
@@ -535,6 +547,7 @@
     function toggleFx(f, b) { const l = ['fx-noise','fx-carbon','fx-glass','fx-holo','fx-vignette'].includes(f) ? 'cardTexture' : 'cardFinish'; const el = document.getElementById(l); if(el.classList.contains(f)) { el.classList.remove(f); b.classList.remove('active'); } else { el.className = l === 'cardTexture' ? 'layer-texture' : 'layer-finish'; el.classList.add(f); b.classList.add('active'); } }
     function setFormat(f, b) { document.getElementById('captureCard').className = `card-wrapper format-${f} style-${document.querySelector('.style-modern.active') ? 'modern' : 'classic'}`; toggleActive(b); }
     function setStyle(s, b) { document.getElementById('captureCard').className = `card-wrapper format-${document.querySelector('.option-btn[onclick*="format-landscape"].active') ? 'landscape' : 'portrait'} style-${s}`; toggleActive(b); }
+    function setTheme(t, b) { document.getElementById('cardTheme').style.background = ''; cardState.customBg = null; document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
     function toggleActive(b) { b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); }
     function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     
@@ -542,8 +555,7 @@
         const video = card.querySelector('video');
         if (video) {
             video.pause();
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d'); ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); img.className = video.className; img.style.cssText = video.style.cssText;
             video.style.display = 'none'; video.parentNode.insertBefore(img, video);
