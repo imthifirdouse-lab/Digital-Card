@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Live Export</title>
+    <title>Magic Card: Final Stats Layout</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -44,6 +44,7 @@
         .texture-grid { grid-template-columns: 1fr 1fr 1fr; }
         .fx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .option-btn { padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; cursor: pointer; font-size: 10px; font-weight: 600; color: #4b5563; }
+        .option-btn:hover { border-color: var(--primary); }
         .option-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         /* PREVIEW AREA */
@@ -117,7 +118,7 @@
         .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-png { background: #1f2937; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
-        .btn-html { background: #10b981; color: white; } /* HTML Green */
+        .btn-html { background: #10b981; color: white; }
         
         .drop-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; background: #f9fafb; cursor: pointer; margin-top: 10px; }
         .hidden-file { display: none; }
@@ -142,7 +143,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Live Export Suite v8.0</div>
+        <div class="subtitle">Live Export Suite v11.0</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -200,9 +201,9 @@
                 <button class="preset-btn" onclick="setEmojis('📸','❤️','👤')">Insta</button>
                 <button class="preset-btn" onclick="setEmojis('🤝','👥','📄')">LinkedIn</button>
             </div>
-            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji1" value="📸" oninput="renderCard()"><input type="text" class="std-input" id="inStat1" placeholder="Stat 1" oninput="renderCard()"></div>
-            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji2" value="❤️" oninput="renderCard()"><input type="text" class="std-input" id="inStat2" placeholder="Stat 2" oninput="renderCard()"></div>
-            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji3" value="👤" oninput="renderCard()"><input type="text" class="std-input" id="inStat3" placeholder="Stat 3" oninput="renderCard()"></div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji1" value="📸" oninput="renderCard()"><input type="text" class="std-input" id="inStat1" value="Post" oninput="renderCard()"></div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji2" value="❤️" oninput="renderCard()"><input type="text" class="std-input" id="inStat2" value="Followers" oninput="renderCard()"></div>
+            <div class="stat-input-group"><input type="text" class="emoji-input" id="inEmoji3" value="👤" oninput="renderCard()"><input type="text" class="std-input" id="inStat3" value="Following" oninput="renderCard()"></div>
 
             <div class="qr-controls">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -233,9 +234,9 @@
                     <div class="c-title-row" id="outTitleRow" style="display:none;"><i class="fas fa-briefcase"></i> <span id="outTitle">Official Page</span></div>
 
                     <div class="c-stats-row" id="outStats" style="display:none;">
-                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji1">📸</span> <span id="valStat1">0</span></div>
-                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji2">❤️</span> <span id="valStat2">0</span></div>
-                        <div class="c-stat-item"><span class="c-stat-emoji" id="outEmoji3">👤</span> <span id="valStat3">0</span></div>
+                        <div class="c-stat-item"><span id="valStat1">Post</span> <span class="c-stat-emoji" id="outEmoji1">📸</span></div>
+                        <div class="c-stat-item"><span id="valStat2">Followers</span> <span class="c-stat-emoji" id="outEmoji2">❤️</span></div>
+                        <div class="c-stat-item"><span id="valStat3">Following</span> <span class="c-stat-emoji" id="outEmoji3">👤</span></div>
                     </div>
 
                     <div class="c-info-row" id="outContactRow" style="display:none;"><i class="fas fa-address-card"></i> <span id="outContact">Contact Info</span></div>
@@ -250,116 +251,132 @@
             <button class="btn-dl btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
             <button class="btn-dl btn-html" onclick="downloadHTML()"><i class="fas fa-code"></i> Live Card</button>
         </div>
-        <p style="margin-top:10px; font-size:11px; color:#666;">PNG/PDF are static. Use "Live Card" to share animations.</p>
+        <p style="margin-top:10px; font-size:11px; color:#666;">PNG = Social | PDF = Flat | Live = Animated</p>
     </div>
 </div>
 
 <script>
     let cardState = { name: "MyBrand", link: "", baseClass: "theme-generic", source: "WEBSITE", icon: "fa-globe", fullUrl: "https://example.com" };
     let isFreeMode = false;
-    let uploadedMediaData = null; // Store base64 here
+    let uploadedMediaData = null; 
+    let userInteracting = false; 
 
     function initApp() {
         document.getElementById('loader').style.display='none';
-        generateQR(); 
-        initDrag();
+        
+        if(document.getElementById('linkInput')) {
+            generateQR(); 
+            initDrag();
+        } else {
+            document.body.addEventListener('click', enableMotion);
+        }
+        
         init3D(); 
+        requestAnimationFrame(autoPlayLoop); 
     }
 
-    // --- QR ENGINE ---
-    function generateQR() {
-        const qrBox = document.getElementById('qrContainer');
-        const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked;
-        if (!isChecked) { qrBox.style.display = 'none'; return; }
+    // --- PHYSICS ---
+    function init3D() {
+        const p = document.getElementById('previewPanel');
+        const c = document.getElementById('captureCard');
+        const g = document.getElementById('cardGlare');
         
-        qrBox.style.display = 'flex'; 
-        qrBox.innerHTML = "";
+        p.addEventListener('mouseenter', () => { userInteracting = true; });
+        p.addEventListener('mouseleave', () => { userInteracting = false; });
         
-        new QRCode(qrBox, { 
-            text: cardState.fullUrl, 
-            width: 256, height: 256, 
-            colorDark : "#000000", colorLight : "rgba(255,255,255,0)", 
-            correctLevel : QRCode.CorrectLevel.M 
+        p.addEventListener('mousemove', (e) => {
+            if(isFreeMode || window.innerWidth<800) return;
+            const r = c.getBoundingClientRect();
+            const x = e.clientX - r.left; const y = e.clientY - r.top;
+            const cx = r.width/2; const cy = r.height/2;
+            const rx = ((y-cy)/cy)*-12; const ry = ((x-cx)/cx)*12;
+            c.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+            g.style.opacity = '1';
+            g.style.transform = `translate(${x}px, ${y}px)`;
+            g.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.3) 0%, transparent 80%)`;
         });
-        resizeQR(); 
     }
 
-    function resizeQR() {
-        const size = document.getElementById('qrSize').value;
-        document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px');
+    function autoPlayLoop(timestamp) {
+        if(!userInteracting && !isFreeMode) {
+            const c = document.getElementById('captureCard');
+            const g = document.getElementById('cardGlare');
+            const t = timestamp * 0.001;
+            const rx = Math.sin(t * 1.5) * 6; 
+            const ry = Math.cos(t * 1.2) * 8; 
+            c.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+            const gx = 50 + (ry * 3); const gy = 50 + (rx * 3);
+            g.style.opacity = '0.6';
+            g.style.background = `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.3) 0%, transparent 60%)`;
+        }
+        requestAnimationFrame(autoPlayLoop);
     }
 
-    // --- ANALYZE LINK ---
+    // --- LOGIC ---
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
         if(!urlRaw) return;
-        
         let cleanUrl = urlRaw;
         if (!/^https?:\/\//i.test(urlRaw)) { cleanUrl = 'https://' + urlRaw; }
         cardState.fullUrl = cleanUrl;
-
         let domain = "";
         try { domain = new URL(cleanUrl).hostname.toLowerCase(); } catch (e) { return; }
-
         let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace(/^www\./, '');
         let parts = displayUrl.split('/');
         let handle = parts[1] ? parts[1].split('?')[0] : '';
-
         let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
-
-        if (domain.includes('instagram.com')) { 
-            newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; 
-            setEmojis('📸','❤️','👤'); 
-        }
-        else if (domain.includes('linkedin.com')) { 
-            newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; 
-            setEmojis('🤝','👥','📄'); 
-            if (parts[1] === 'in' && parts[2]) { handle = parts[2].split('?')[0]; }
-        }
-        else if (domain.includes('twitter.com') || domain.includes('x.com')) { 
-            newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; 
-            setEmojis('🐦','🔁','❤️'); 
-        }
-
+        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; setEmojis('📸','❤️','👤'); }
+        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); if(parts[1] === 'in' && parts[2]) handle = parts[2].split('?')[0]; }
+        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
         updateBaseTheme(newTheme, newSource, newIcon);
-        
-        if (handle) {
-            cardState.name = handle;
-            document.getElementById('inName').value = handle;
-        }
-        
+        if(handle) { cardState.name = handle; document.getElementById('inName').value = handle; }
         generateQR();
         renderCard();
     }
 
-    // --- RENDER ---
     function renderCard() {
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
         const inContact = document.getElementById('inContact').value;
         document.getElementById('outName').innerText = inName || cardState.name;
         document.getElementById('outSource').innerHTML = `<i class="fab ${cardState.icon}"></i> ${cardState.source}`;
-        
         document.getElementById('outLink').style.display = 'none'; 
-
         const tr = document.getElementById('outTitleRow'); if(inTitle) { tr.style.display = 'flex'; document.getElementById('outTitle').innerText = inTitle; } else { tr.style.display = 'none'; }
         const cr = document.getElementById('outContactRow'); if(inContact) { cr.style.display = 'flex'; document.getElementById('outContact').innerText = inContact; } else { cr.style.display = 'none'; }
         const s1 = document.getElementById('inStat1').value; const s2 = document.getElementById('inStat2').value; const s3 = document.getElementById('inStat3').value; const sr = document.getElementById('outStats');
         if(s1 || s2 || s3) { sr.style.display = 'flex'; document.getElementById('outEmoji1').innerText = document.getElementById('inEmoji1').value; document.getElementById('valStat1').innerText = s1 || "-"; document.getElementById('outEmoji2').innerText = document.getElementById('inEmoji2').value; document.getElementById('valStat2').innerText = s2 || "-"; document.getElementById('outEmoji3').innerText = document.getElementById('inEmoji3').value; document.getElementById('valStat3').innerText = s3 || "-"; } else { sr.style.display = 'none'; }
-        
         const av = document.getElementById('outAvatar'); 
         if((!av.querySelector('img') && !av.querySelector('video')) || (av.querySelector('img') && av.querySelector('img').style.display==='none')) { 
             av.innerText = (inName || cardState.name).substring(0,2).toUpperCase(); 
         }
     }
-    
-    // --- POSITIONING ---
+
+    function downloadHTML() {
+        const title = document.getElementById('inName').value || 'Card';
+        const docClone = document.documentElement.cloneNode(true);
+        const uiElements = docClone.querySelectorAll('.input-panel, .actions, p');
+        uiElements.forEach(el => el.remove());
+        const container = docClone.querySelector('.app-container');
+        container.style.justifyContent = 'center'; container.style.alignItems = 'center'; container.style.height = '100vh';
+        if(uploadedMediaData) {
+            const avatarDiv = docClone.querySelector('#outAvatar');
+            if(uploadedMediaData.startsWith('data:video')) {
+               avatarDiv.innerHTML = `<video src="${uploadedMediaData}" class="c-img" autoplay loop muted playsinline></video>`;
+            } else {
+               avatarDiv.innerHTML = `<img src="${uploadedMediaData}" class="c-img">`;
+            }
+        }
+        const blob = new Blob([docClone.outerHTML], {type: 'text/html'});
+        const a = document.createElement('a'); a.download = `Live_Card_${title}.html`; a.href = URL.createObjectURL(blob); a.click();
+    }
+
+    function generateQR() { const qrBox = document.getElementById('qrContainer'); const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked; if (!isChecked) { qrBox.style.display = 'none'; return; } qrBox.style.display = 'flex'; qrBox.innerHTML = ""; new QRCode(qrBox, { text: cardState.fullUrl, width: 256, height: 256, colorDark : "#000000", colorLight : "rgba(255,255,255,0)", correctLevel : QRCode.CorrectLevel.M }); resizeQR(); }
+    function resizeQR() { const size = document.getElementById('qrSize').value; document.getElementById('qrContainer').style.setProperty('--qr-size', size + 'px'); }
     function toggleFreeMode(cb) { isFreeMode = cb.checked; const c=document.getElementById('captureCard'); if(isFreeMode){c.classList.add('drag-active','custom-layout');c.style.transform="none";}else{c.classList.remove('drag-active');} }
     function resetLayout() { const c=document.getElementById('captureCard'); const a=document.getElementById('dragAvatar'); const t=document.getElementById('dragText'); const q=document.getElementById('qrContainer'); c.classList.remove('custom-layout'); a.style=""; t.style=""; q.style=""; q.style.bottom='20px'; q.style.right='20px'; }
     function initDrag() { const els=[document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')]; let activeEl=null; let startX=0; let startY=0; let initLeft=0; let initTop=0; els.forEach(el=>{el.addEventListener('mousedown',(e)=>{if(!isFreeMode)return;activeEl=el;e.preventDefault();startX=e.clientX;startY=e.clientY;initLeft=activeEl.offsetLeft;initTop=activeEl.offsetTop;if(getComputedStyle(activeEl).position!=='absolute'){activeEl.style.position='absolute';activeEl.style.left=initLeft+'px';activeEl.style.top=initTop+'px';activeEl.style.bottom='auto';activeEl.style.right='auto';}});}); document.addEventListener('mousemove',(e)=>{if(!activeEl)return;const dx=e.clientX-startX;const dy=e.clientY-startY;activeEl.style.left=(initLeft+dx)+'px';activeEl.style.top=(initTop+dy)+'px';}); document.addEventListener('mouseup',()=>{activeEl=null;}); }
     function enableMotion() { if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') { DeviceMotionEvent.requestPermission().then(r => { if (r=='granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientation', handleOrientation); } alert("Tilt Enabled!"); }
     function handleOrientation(e) { if(isFreeMode) return; const c = document.getElementById('captureCard'); const g = document.getElementById('cardGlare'); let x = e.beta; let y = e.gamma; if (x>40) x=40; if (x<-40) x=-40; if (y>40) y=40; if (y<-40) y=-40; c.style.transform = `perspective(1000px) rotateX(${-x/2}deg) rotateY(${y/2}deg)`; g.style.opacity = (Math.abs(x)+Math.abs(y))/50; g.style.background = `linear-gradient(${y*4}deg, rgba(255,255,255,0.4) 0%, transparent 80%)`; }
-    function init3D() { const p = document.getElementById('previewPanel'); const c = document.getElementById('captureCard'); const g = document.getElementById('cardGlare'); p.addEventListener('mousemove', (e) => { if(isFreeMode || window.innerWidth<800) return; const r = c.getBoundingClientRect(); const x = e.clientX - r.left; const y = e.clientY - r.top; const cx = r.width/2; const cy = r.height/2; const rx = ((y-cy)/cy)*-12; const ry = ((x-cx)/cx)*12; c.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`; g.style.opacity = '1'; g.style.transform = `translate(${x}px, ${y}px)`; g.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.3) 0%, transparent 80%)`; }); p.addEventListener('mouseleave', () => { c.style.transform = `perspective(1000px) rotateX(0) rotateY(0)`; g.style.opacity = '0'; }); }
     function toggleQR(cb) { generateQR(); }
     function toggleFx(f, b) { const l = ['fx-noise','fx-carbon','fx-glass','fx-holo','fx-vignette'].includes(f) ? 'cardTexture' : 'cardFinish'; const el = document.getElementById(l); if(el.classList.contains(f)) { el.classList.remove(f); b.classList.remove('active'); } else { el.className = l === 'cardTexture' ? 'layer-texture' : 'layer-finish'; el.classList.add(f); b.classList.add('active'); } }
     function setFormat(f, b) { document.getElementById('captureCard').className = `card-wrapper format-${f} style-${document.querySelector('.style-modern.active') ? 'modern' : 'classic'}`; toggleActive(b); }
@@ -369,94 +386,30 @@
     function updateBaseTheme(c, s, i) { cardState.baseClass = c; cardState.source = s; cardState.icon = i; document.getElementById('cardTheme').className = `layer-base ${c}`; }
     function setEmojis(e1, e2, e3) { document.getElementById('inEmoji1').value=e1; document.getElementById('inEmoji2').value=e2; document.getElementById('inEmoji3').value=e3; renderCard(); }
     
-    // --- DOWNLOAD ---
+    // DOWNLOAD
     async function prepareVideoForCapture(card) {
         const video = card.querySelector('video');
         if (video) {
             video.pause();
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth || video.clientWidth;
-            canvas.height = video.videoHeight || video.clientHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const img = document.createElement('img');
-            img.src = canvas.toDataURL('image/png');
-            img.className = video.className;
-            img.style.cssText = video.style.cssText;
-            video.style.display = 'none';
-            video.parentNode.insertBefore(img, video);
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d'); ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); img.className = video.className; img.style.cssText = video.style.cssText;
+            video.style.display = 'none'; video.parentNode.insertBefore(img, video);
             return { video, img };
         }
         return null;
     }
+    function restoreVideoAfterCapture(swap) { if(swap){ swap.img.remove(); swap.video.style.display='block'; swap.video.play(); } }
+    function downloadPNG() { const c=document.getElementById('captureCard'); const g=document.getElementById('cardGlare'); const pt=c.style.transform; c.style.transform = `perspective(1000px) rotateX(-5deg) rotateY(5deg)`; g.style.opacity = '0.4'; g.style.background = `radial-gradient(circle at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 60%)`; setTimeout(async () => { const swap = await prepareVideoForCapture(c); html2canvas(c, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); restoreVideoAfterCapture(swap); c.style.transform = pt; g.style.opacity = '0'; }); }, 100); }
+    function downloadPDF() { const c=document.getElementById('captureCard'); const pt=c.style.transform; c.style.transform = "none"; setTimeout(async () => { const swap = await prepareVideoForCapture(c); html2canvas(c, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] }); pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3); const w = pdf.internal.pageSize.getWidth(); const h = pdf.internal.pageSize.getHeight(); pdf.link(0, 0, w, h, { url: cardState.fullUrl }); pdf.save(`Card_${cardState.name}.pdf`); restoreVideoAfterCapture(swap); c.style.transform = pt; }); }, 100); }
 
-    function restoreVideoAfterCapture(swapData) {
-        if (swapData) {
-            swapData.img.remove();
-            swapData.video.style.display = 'block';
-            swapData.video.play();
-        }
-    }
-
-    function downloadPNG() { 
-        const card = document.getElementById('captureCard'); 
-        const glare = document.getElementById('cardGlare');
-        const prevTransform = card.style.transform;
-        card.style.transform = `perspective(1000px) rotateX(-5deg) rotateY(5deg)`;
-        glare.style.opacity = '0.4'; glare.style.background = `radial-gradient(circle at 80% 20%, rgba(255,255,255,0.4) 0%, transparent 60%)`;
-        setTimeout(async () => { const swap = await prepareVideoForCapture(card); html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const a = document.createElement('a'); a.download = `Card_${cardState.name}.png`; a.href = c.toDataURL("image/png"); a.click(); restoreVideoAfterCapture(swap); card.style.transform = prevTransform; glare.style.opacity = '0'; }); }, 100);
-    }
-    function downloadPDF() { 
-        const card = document.getElementById('captureCard'); const prevTransform = card.style.transform; card.style.transform = "none";
-        setTimeout(async () => { const swap = await prepareVideoForCapture(card); html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true }).then(c => { const pdf = new window.jspdf.jsPDF({ orientation: document.getElementById('captureCard').classList.contains('format-landscape') ? 'l' : 'p', unit:'px', format:[c.width/3, c.height/3] }); pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, c.width/3, c.height/3); const w = pdf.internal.pageSize.getWidth(); const h = pdf.internal.pageSize.getHeight(); pdf.link(0, 0, w, h, { url: cardState.fullUrl }); pdf.save(`Card_${cardState.name}.pdf`); restoreVideoAfterCapture(swap); card.style.transform = prevTransform; }); }, 100);
-    }
-
-    // --- HTML EXPORT ---
-    function downloadHTML() {
-        const title = document.getElementById('inName').value || 'Card';
-        const docClone = document.documentElement.cloneNode(true);
-        
-        // Remove UI elements
-        const uiElements = docClone.querySelectorAll('.input-panel, .actions, p');
-        uiElements.forEach(el => el.remove());
-        
-        // Ensure Preview is centered
-        const container = docClone.querySelector('.app-container');
-        container.style.justifyContent = 'center';
-        container.style.alignItems = 'center';
-        container.style.height = '100vh';
-        
-        // Embed Avatar
-        if(uploadedMediaData) {
-            const avatarDiv = docClone.querySelector('#outAvatar');
-            if(uploadedMediaData.startsWith('data:video')) {
-               avatarDiv.innerHTML = `<video src="${uploadedMediaData}" class="c-img" autoplay loop muted playsinline></video>`;
-            } else {
-               avatarDiv.innerHTML = `<img src="${uploadedMediaData}" class="c-img">`;
-            }
-        }
-
-        const htmlContent = docClone.outerHTML;
-        const blob = new Blob([htmlContent], {type: 'text/html'});
-        const a = document.createElement('a');
-        a.download = `Live_Card_${title}.html`;
-        a.href = URL.createObjectURL(blob);
-        a.click();
-    }
-
-    // FILE HANDLING
-    const dropArea = document.getElementById('dropArea'); 
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false)); 
-    dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); 
-    document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image') || i.type.includes('video')) applyImageFromBlob(i.getAsFile()); }); });
-    
-    function handleFileSelect(i) { handleFiles(i.files); } 
-    function handleFiles(f) { if(f[0]) applyImageFromBlob(f[0]); }
-    
+    const dropArea = document.getElementById('dropArea'); ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false)); dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); document.addEventListener('paste', e => { if(e.clipboardData.items) [...e.clipboardData.items].forEach(i => { if(i.type.includes('image') || i.type.includes('video')) applyImageFromBlob(i.getAsFile()); }); });
+    function handleFileSelect(i) { handleFiles(i.files); } function handleFiles(f) { if(f[0]) applyImageFromBlob(f[0]); }
     function applyImageFromBlob(blob) {
         const reader = new FileReader();
         reader.onloadend = function() {
-            uploadedMediaData = reader.result; // Store base64
+            uploadedMediaData = reader.result;
             const container = document.getElementById('outAvatar');
             if (blob.type.startsWith('video/')) {
                 container.innerHTML = `<video src="${uploadedMediaData}" class="c-img" autoplay loop muted playsinline></video>`;
