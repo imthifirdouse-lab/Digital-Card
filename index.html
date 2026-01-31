@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Mobile Ready</title>
+    <title>Magic Card: vCard Suite</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -54,10 +54,9 @@
         .format-landscape { width: 480px; height: 280px; }
         .format-portrait { width: 320px; height: 568px; flex-direction: column; }
 
-        /* Mobile Scaling for Live View */
         @media (max-width: 500px) {
-            .format-landscape { width: 90%; max-width: 340px; height: auto; aspect-ratio: 1.7; }
-            .format-portrait { width: 85%; max-width: 300px; height: auto; aspect-ratio: 0.56; }
+            .format-landscape { width: 340px; height: 200px; }
+            .format-portrait { width: 280px; height: 500px; }
         }
 
         .layer-base, .layer-texture, .layer-finish { position: absolute; top:0; left:0; width:100%; height:100%; }
@@ -113,6 +112,7 @@
         .c-stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; }
         .c-stat-emoji { font-size: 13px; }
         .c-info-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
+        
         .c-tag { display: none; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
 
         .btn-dl { padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -120,6 +120,9 @@
         .btn-pdf { background: #ef4444; color: white; }
         .btn-html { background: #10b981; color: white; }
         
+        /* VCARD BUTTON STYLE */
+        .btn-vcard { background: #2563eb; color: white; margin-left: auto; } /* Blue */
+
         .drop-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; background: #f9fafb; cursor: pointer; margin-top: 10px; }
         .hidden-file { display: none; }
         .qr-controls { margin-top: 15px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
@@ -135,14 +138,12 @@
         .drag-active .drag-el:hover { outline: 2px solid #6366f1; }
         .tilt-btn { background: #2563eb; color: white; font-weight: bold; width: 100%; border: none; padding: 10px; border-radius: 8px; margin-top: 8px; cursor: pointer; }
         
-        /* TAP HINT FOR IOS */
-        .tap-hint {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); color: white; padding: 10px 20px;
-            border-radius: 20px; font-size: 12px; font-weight: bold;
-            pointer-events: none; opacity: 0; transition: opacity 0.5s;
-            z-index: 9999;
-        }
+        .tap-hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 9999; }
+        
+        /* FLOATING ACTION BUTTON (Live View Only) */
+        .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none; } /* Hidden in Editor */
+        .fab-btn { background: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(37,99,235,0.4); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s; }
+        .fab-btn:hover { transform: scale(1.05); }
     </style>
 </head>
 <body onload="initApp()">
@@ -152,7 +153,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Mobile Ready v12.0</div>
+        <div class="subtitle">vCard Suite v13.0</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -264,6 +265,10 @@
     </div>
 </div>
 
+<div class="fab-container" id="fabContact">
+    <button class="fab-btn" onclick="downloadVCard()"><i class="fas fa-address-book"></i> Save Contact</button>
+</div>
+
 <div class="tap-hint" id="tapHint">👆 Tap card to enable 3D Tilt</div>
 
 <script>
@@ -271,22 +276,49 @@
     let isFreeMode = false;
     let uploadedMediaData = null; 
     let userInteracting = false; 
-    let lastGyroTime = 0; // Tracks when phone sensors last updated
+    let lastGyroTime = 0; 
 
     function initApp() {
         document.getElementById('loader').style.display='none';
         
         if(document.getElementById('linkInput')) {
+            // EDITOR MODE
             generateQR(); 
             initDrag();
         } else {
-            // DOWNLOADED: Show hint and wait for click
+            // DOWNLOADED LIVE CARD MODE
             document.body.addEventListener('click', enableMotion);
             setTimeout(() => { document.getElementById('tapHint').style.opacity = '1'; }, 1000);
+            
+            // Show Contact Button only in Live Mode
+            const fab = document.getElementById('fabContact');
+            if(fab) fab.style.display = 'block';
         }
         
         init3D(); 
         requestAnimationFrame(autoPlayLoop); 
+    }
+
+    // --- VCARD ENGINE ---
+    function downloadVCard() {
+        // Fallback: In downloaded mode, inputs don't exist, so we grab text from DOM
+        const name = document.getElementById('outName').innerText || "Contact";
+        const url = cardState.fullUrl;
+        
+        // Construct VCF 3.0 String
+        const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${name}
+N:;${name};;;
+URL:${url}
+NOTE:Connect via Magic Card
+END:VCARD`;
+
+        const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `contact_${name}.vcf`;
+        a.click();
     }
 
     // --- PHYSICS ---
@@ -311,10 +343,9 @@
         });
     }
 
-    // Handover Protocol: If gyro active recently, stop auto-play
     function autoPlayLoop(timestamp) {
         let timeSinceGyro = Date.now() - lastGyroTime;
-        let isGyroActive = timeSinceGyro < 500; // Handover timeout (500ms)
+        let isGyroActive = timeSinceGyro < 500; 
 
         if(!userInteracting && !isFreeMode && !isGyroActive) {
             const c = document.getElementById('captureCard');
@@ -369,6 +400,7 @@
         }
     }
 
+    // --- HTML EXPORT WITH DATA SERIALIZATION ---
     function downloadHTML() {
         const title = document.getElementById('inName').value || 'Card';
         const docClone = document.documentElement.cloneNode(true);
@@ -376,6 +408,8 @@
         uiElements.forEach(el => el.remove());
         const container = docClone.querySelector('.app-container');
         container.style.justifyContent = 'center'; container.style.alignItems = 'center'; container.style.height = '100vh';
+        
+        // Embed Avatar
         if(uploadedMediaData) {
             const avatarDiv = docClone.querySelector('#outAvatar');
             if(uploadedMediaData.startsWith('data:video')) {
@@ -384,6 +418,16 @@
                avatarDiv.innerHTML = `<img src="${uploadedMediaData}" class="c-img">`;
             }
         }
+
+        // SERIALIZE DATA FOR DOWNLOADED CARD
+        const script = docClone.querySelector('script');
+        const stateDump = `
+            cardState = ${JSON.stringify(cardState)};
+            // Ensure vCard button is visible in download
+            document.getElementById('fabContact').style.display = 'block';
+        `;
+        script.textContent = stateDump + script.textContent;
+
         const blob = new Blob([docClone.outerHTML], {type: 'text/html'});
         const a = document.createElement('a'); a.download = `Live_Card_${title}.html`; a.href = URL.createObjectURL(blob); a.click();
     }
@@ -395,9 +439,8 @@
     function resetLayout() { const c=document.getElementById('captureCard'); const a=document.getElementById('dragAvatar'); const t=document.getElementById('dragText'); const q=document.getElementById('qrContainer'); c.classList.remove('custom-layout'); a.style=""; t.style=""; q.style=""; q.style.bottom='20px'; q.style.right='20px'; }
     function initDrag() { const els=[document.getElementById('dragAvatar'), document.getElementById('dragText'), document.getElementById('qrContainer')]; let activeEl=null; let startX=0; let startY=0; let initLeft=0; let initTop=0; els.forEach(el=>{el.addEventListener('mousedown',(e)=>{if(!isFreeMode)return;activeEl=el;e.preventDefault();startX=e.clientX;startY=e.clientY;initLeft=activeEl.offsetLeft;initTop=activeEl.offsetTop;if(getComputedStyle(activeEl).position!=='absolute'){activeEl.style.position='absolute';activeEl.style.left=initLeft+'px';activeEl.style.top=initTop+'px';activeEl.style.bottom='auto';activeEl.style.right='auto';}});}); document.addEventListener('mousemove',(e)=>{if(!activeEl)return;const dx=e.clientX-startX;const dy=e.clientY-startY;activeEl.style.left=(initLeft+dx)+'px';activeEl.style.top=(initTop+dy)+'px';}); document.addEventListener('mouseup',()=>{activeEl=null;}); }
     
-    // GYRO ENABLE
     function enableMotion() { 
-        document.getElementById('tapHint').style.display = 'none'; // Hide hint
+        document.getElementById('tapHint').style.display = 'none'; 
         if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') { 
             DeviceMotionEvent.requestPermission().then(r => { if (r=='granted') window.addEventListener('deviceorientation', handleOrientation); }); 
         } else { 
@@ -407,7 +450,7 @@
     
     function handleOrientation(e) { 
         if(isFreeMode) return; 
-        lastGyroTime = Date.now(); // Signal that gyro is controlling
+        lastGyroTime = Date.now(); 
         const c = document.getElementById('captureCard'); 
         const g = document.getElementById('cardGlare'); 
         let x = e.beta; let y = e.gamma; 
