@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Tappable</title>
+    <title>Magic Card: Clean Contact</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -67,7 +67,7 @@
         
         .c-content { display: flex; width: 100%; height: 100%; z-index: 10; position: relative; }
 
-        /* THEMES */
+        /* THEMES & FX */
         .theme-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         .theme-linkedin { background: linear-gradient(135deg, #0077b5, #005582); }
         .theme-twitter { background: linear-gradient(135deg, #1da1f2, #0d8bd9); }
@@ -151,7 +151,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">Tappable Live v15.0</div>
+        <div class="subtitle">v17.0 (Clean Contact)</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -282,21 +282,20 @@
         document.getElementById('loader').style.display='none';
         
         if(document.getElementById('linkInput')) {
-            // EDITOR MODE
             generateQR(); 
             initDrag();
         } else {
             // DOWNLOADED LIVE CARD MODE
-            // 1. Enable Tap-to-Visit
-            document.getElementById('captureCard').style.cursor = 'pointer';
-            document.getElementById('captureCard').onclick = function() {
-                window.open(cardState.fullUrl, '_blank');
-            };
-
-            // 2. Enable Tilt on Body click (mobile compatibility)
             document.body.addEventListener('click', enableMotion);
             
+            // 1. CLICK TO VISIT (Smart New Tab)
+            document.getElementById('captureCard').style.cursor = 'pointer';
+            document.getElementById('captureCard').onclick = function() {
+                if(cardState.fullUrl) window.open(cardState.fullUrl, '_blank');
+            };
+
             setTimeout(() => { document.getElementById('tapHint').style.opacity = '1'; }, 1000);
+            
             const fab = document.getElementById('fabContact');
             if(fab) fab.style.display = 'block';
         }
@@ -305,16 +304,29 @@
         requestAnimationFrame(autoPlayLoop); 
     }
 
-    // --- VCARD ---
+    // --- VCARD (STRICT CLEAN) ---
     function downloadVCard() {
+        // Grab Name and Phone from State (updated via inputs)
         const name = cardState.name || "Contact";
-        const url = cardState.fullUrl;
         const phone = cardState.phone || "";
-        let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nN:;${name};;;\nURL:${url}\nNOTE:Connect via Magic Card`;
-        if(phone) vcard += `\nTEL;TYPE=CELL:${phone}`;
+        
+        // STRICT VCF Construction - Only Name and Phone
+        let vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${name}
+N:;${name};;;`;
+
+        if(phone) {
+            vcard += `\nTEL;TYPE=CELL:${phone}`;
+        }
+
         vcard += `\nEND:VCARD`;
+
         const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `contact_${name}.vcf`; a.click();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `contact_${name}.vcf`;
+        a.click();
     }
 
     // --- PHYSICS ---
@@ -395,6 +407,7 @@
         }
     }
 
+    // --- HTML EXPORT ---
     function downloadHTML() {
         const title = document.getElementById('inName').value || 'Card';
         const docClone = document.documentElement.cloneNode(true);
@@ -412,14 +425,16 @@
             }
         }
 
-        const script = docClone.querySelector('script');
-        const stateDump = `
-            cardState = ${JSON.stringify(cardState)};
-            document.getElementById('fabContact').style.display = 'block';
-        `;
-        script.textContent = stateDump + script.textContent;
+        let htmlContent = docClone.outerHTML;
+        const stateJSON = JSON.stringify(cardState);
+        const regex = /let cardState = \{.*?\};/;
+        htmlContent = htmlContent.replace(regex, `let cardState = ${stateJSON};`);
+        
+        const scriptEnd = '<\/script>';
+        const enableFab = `document.getElementById('fabContact').style.display = 'block';`;
+        htmlContent = htmlContent.replace(scriptEnd, `${enableFab}${scriptEnd}`);
 
-        const blob = new Blob([docClone.outerHTML], {type: 'text/html'});
+        const blob = new Blob([htmlContent], {type: 'text/html'});
         const a = document.createElement('a'); a.download = `Live_Card_${title}.html`; a.href = URL.createObjectURL(blob); a.click();
     }
 
