@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Dropdown Suite</title>
+    <title>Magic Card: Clean Subtitle</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -148,6 +148,8 @@
         
         /* SCALABLE ELEMENTS */
         .c-name { font-size: calc(26px * var(--name-scale)); font-weight: 800; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); white-space: nowrap; }
+        
+        /* FIXED: ICON REMOVED FROM TITLE ROW */
         .c-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: calc(13px * var(--title-scale)); font-weight: 500; opacity: 0.9; }
         
         .c-stats-row { display: flex; gap: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); width: fit-content; max-width: 100%; }
@@ -198,7 +200,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">v24.0 (UI Cleanup)</div>
+        <div class="subtitle">v25.0 (Clean & Scaled)</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -241,7 +243,6 @@
             </div>
             
             <div class="sub-label">THEME COLLECTION</div>
-            
             <select id="themeSelect" class="smart-input" onchange="setThemeFromDropdown(this)">
                 <optgroup label="Essentials">
                     <option value="default">Auto-Detect (Base)</option>
@@ -330,7 +331,7 @@
                     <div class="c-handle" id="outSource"><i class="fas fa-globe"></i> WEBSITE</div>
                     <div class="c-name" id="outName">MYBRAND</div>
                     
-                    <div class="c-title-row" id="outTitleRow" style="display:none;"><i class="fas fa-briefcase"></i> <span id="outTitle">Official Page</span></div>
+                    <div class="c-title-row" id="outTitleRow" style="display:none;"><span id="outTitle">Official Page</span></div>
 
                     <div class="c-stats-row" id="outStats" style="display:none;">
                         <div class="c-stat-item"><span id="valStat1">Post</span> <span class="c-stat-emoji" id="outEmoji1">📸</span></div>
@@ -421,23 +422,19 @@
         themeEl.className = 'layer-base'; 
         themeEl.style.background = bg;
         cardState.customBg = bg;
-        
-        // Reset Dropdown
         document.getElementById('themeSelect').value = '';
     }
 
     function setThemeFromDropdown(el) {
         const theme = el.value;
         if(theme) {
-            // Reset Custom
             document.getElementById('cardTheme').style.background = '';
             cardState.customBg = null;
-            // Apply Preset
             document.getElementById('cardTheme').className = theme === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${theme}`;
         }
     }
 
-    // --- ANALYZE LINK (UPDATED FOR DROPDOWN RESET) ---
+    // --- ANALYZE LINK ---
     function analyzeLink() {
         const urlRaw = document.getElementById('linkInput').value.trim();
         if(!urlRaw) return;
@@ -451,12 +448,10 @@
         else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); if(parts[1] === 'in' && parts[2]) handle = parts[2].split('?')[0]; }
         else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
         
-        // Update Auto-Base state
         cardState.baseClass = newTheme; 
         cardState.source = newSource; 
         cardState.icon = newIcon; 
         
-        // Auto-Reset to Base unless Custom is active
         if(!cardState.customBg) {
             document.getElementById('themeSelect').value = 'default';
             document.getElementById('cardTheme').className = `layer-base ${newTheme}`;
