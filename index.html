@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Card: Mega Suite</title>
+    <title>Magic Card: Dropdown Suite</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -32,7 +32,7 @@
         .sub-label { font-size: 10px; font-weight: 700; color: #6b7280; margin-bottom: 6px; display: block; }
 
         /* INPUTS */
-        .smart-input, .std-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #f9fafb; margin-bottom: 8px; }
+        .smart-input, .std-input, select { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #f9fafb; margin-bottom: 8px; }
         .stat-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .emoji-input { width: 40px; text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
         .text-input { flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
@@ -51,10 +51,6 @@
         .preset-bar { display: flex; gap: 5px; margin-bottom: 10px; }
         .preset-btn { font-size: 10px; padding: 4px 8px; border: 1px solid #e5e7eb; background: white; cursor: pointer; border-radius: 4px; }
         .option-grid { display: grid; gap: 8px; margin-bottom: 10px; grid-template-columns: 1fr 1fr; }
-        
-        /* NEW 4-COLUMN GRID FOR THEMES */
-        .texture-grid { display: grid; gap: 6px; margin-bottom: 10px; grid-template-columns: 1fr 1fr 1fr 1fr; }
-        
         .fx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .option-btn { padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; cursor: pointer; font-size: 10px; font-weight: 600; color: #4b5563; }
         .option-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -69,14 +65,14 @@
             transform-style: preserve-3d; border-radius: 24px; 
             width: 480px; height: 280px;
             /* Default Text Scale Variables */
-            --name-scale: 1;
-            --title-scale: 1;
-            --stat-scale: 1;
+            --name-scale: 1; --title-scale: 1; --stat-scale: 1;
         }
         
         @media (max-width: 600px) {
             .card-wrapper.format-landscape { width: 85vw; max-width: 400px; height: auto; aspect-ratio: 1.71; }
             .card-wrapper.format-portrait { width: 80vw; max-width: 320px; height: auto; aspect-ratio: 0.56; flex-direction: column; }
+            
+            /* Mobile Text Overrides (Scalable) */
             .c-name { font-size: calc(22px * var(--name-scale)) !important; }
             .c-title-row { font-size: calc(11px * var(--title-scale)) !important; }
             .c-stat-item { font-size: calc(9px * var(--stat-scale)) !important; }
@@ -90,16 +86,15 @@
         
         .c-content { display: flex; width: 100%; height: 100%; z-index: 10; position: relative; }
 
-        /* --- THEME LIBRARY (13 TOTAL) --- */
+        /* THEMES */
         .theme-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         .theme-linkedin { background: linear-gradient(135deg, #0077b5, #005582); }
         .theme-twitter { background: linear-gradient(135deg, #1da1f2, #0d8bd9); }
-        .theme-generic { background: linear-gradient(135deg, #1f2937, #111827); } /* Base */
+        .theme-generic { background: linear-gradient(135deg, #1f2937, #111827); }
         
         .theme-gold { background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); }
         .theme-mesh { background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%); background-color: #333; }
         
-        /* NEW THEMES */
         .theme-sunset { background: linear-gradient(135deg, #FF512F, #DD2476); }
         .theme-ocean { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
         .theme-forest { background: linear-gradient(135deg, #56ab2f, #a8e063); }
@@ -110,6 +105,12 @@
         .theme-noir { background: linear-gradient(135deg, #232526, #414345); }
         .theme-rose { background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%); }
         .theme-sky { background: linear-gradient(135deg, #2980B9, #6DD5FA, #FFFFFF); }
+
+        .theme-india { background: linear-gradient(135deg, #FF9933 0%, #FFFFFF 50%, #138808 100%); }
+        .theme-csk { background: linear-gradient(135deg, #F9CD05 0%, #F9CD05 60%, #005697 100%); }
+        .theme-rcb { background: linear-gradient(135deg, #EC1C24 0%, #000000 80%); }
+        .theme-mi { background: linear-gradient(135deg, #004BA0 0%, #004BA0 60%, #D1AB3E 100%); }
+        .theme-srh { background: linear-gradient(135deg, #F7A721 0%, #000000 80%); }
 
         /* FX */
         .fx-noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"); }
@@ -197,7 +198,7 @@
 <div class="app-container">
     <div class="input-panel">
         <div class="brand"><i class="fas fa-gem"></i> PremiumCard</div>
-        <div class="subtitle">v22.0 (Mega Suite)</div>
+        <div class="subtitle">v24.0 (UI Cleanup)</div>
 
         <div class="control-section">
             <div class="control-title">1. Content</div>
@@ -238,22 +239,39 @@
                     <div><input type="color" id="col2" class="color-input" value="#111827" oninput="setCustomTheme()"><div class="color-label">End</div></div>
                 </div>
             </div>
-            <div class="sub-label">PRESETS</div>
-            <div class="texture-grid">
-                <button class="option-btn active" onclick="setTheme('default', this)">Base</button>
-                <button class="option-btn" onclick="setTheme('theme-gold', this)">Gold</button>
-                <button class="option-btn" onclick="setTheme('theme-mesh', this)">Mesh</button>
-                <button class="option-btn" onclick="setTheme('theme-sunset', this)">Sunset</button>
-                <button class="option-btn" onclick="setTheme('theme-ocean', this)">Ocean</button>
-                <button class="option-btn" onclick="setTheme('theme-forest', this)">Forest</button>
-                <button class="option-btn" onclick="setTheme('theme-royal', this)">Royal</button>
-                <button class="option-btn" onclick="setTheme('theme-midnight', this)">Midnight</button>
-                <button class="option-btn" onclick="setTheme('theme-candy', this)">Candy</button>
-                <button class="option-btn" onclick="setTheme('theme-cyber', this)">Cyber</button>
-                <button class="option-btn" onclick="setTheme('theme-noir', this)">Noir</button>
-                <button class="option-btn" onclick="setTheme('theme-rose', this)">Rose</button>
-                <button class="option-btn" onclick="setTheme('theme-sky', this)">Sky</button>
-            </div>
+            
+            <div class="sub-label">THEME COLLECTION</div>
+            
+            <select id="themeSelect" class="smart-input" onchange="setThemeFromDropdown(this)">
+                <optgroup label="Essentials">
+                    <option value="default">Auto-Detect (Base)</option>
+                    <option value="theme-gold">Gold</option>
+                    <option value="theme-mesh">Mesh</option>
+                </optgroup>
+                <optgroup label="IPL & National">
+                    <option value="theme-india">India</option>
+                    <option value="theme-csk">CSK (Yellow/Blue)</option>
+                    <option value="theme-rcb">RCB (Red/Black)</option>
+                    <option value="theme-mi">MI (Blue/Gold)</option>
+                    <option value="theme-srh">SRH (Orange/Black)</option>
+                </optgroup>
+                <optgroup label="Nature & Mood">
+                    <option value="theme-sunset">Sunset</option>
+                    <option value="theme-ocean">Ocean</option>
+                    <option value="theme-forest">Forest</option>
+                    <option value="theme-sky">Sky</option>
+                    <option value="theme-rose">Rose</option>
+                </optgroup>
+                <optgroup label="Dark & Cyber">
+                    <option value="theme-midnight">Midnight</option>
+                    <option value="theme-cyber">Cyber</option>
+                    <option value="theme-noir">Noir</option>
+                    <option value="theme-royal">Royal</option>
+                    <option value="theme-candy">Candy</option>
+                </optgroup>
+            </select>
+            
+            <div class="sub-label" style="margin-top:10px;">FINISHES</div>
             <div class="fx-grid">
                 <button class="option-btn" onclick="toggleFx('fx-glass', this)">Glass</button>
                 <button class="option-btn" onclick="toggleFx('fx-noise', this)">Grain</button>
@@ -394,21 +412,71 @@
         requestAnimationFrame(autoPlayLoop); 
     }
 
+    // --- COLOR ENGINE & DROPDOWN ---
+    function setCustomTheme() {
+        const c1 = document.getElementById('col1').value;
+        const c2 = document.getElementById('col2').value;
+        const bg = `linear-gradient(135deg, ${c1}, ${c2})`;
+        const themeEl = document.getElementById('cardTheme');
+        themeEl.className = 'layer-base'; 
+        themeEl.style.background = bg;
+        cardState.customBg = bg;
+        
+        // Reset Dropdown
+        document.getElementById('themeSelect').value = '';
+    }
+
+    function setThemeFromDropdown(el) {
+        const theme = el.value;
+        if(theme) {
+            // Reset Custom
+            document.getElementById('cardTheme').style.background = '';
+            cardState.customBg = null;
+            // Apply Preset
+            document.getElementById('cardTheme').className = theme === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${theme}`;
+        }
+    }
+
+    // --- ANALYZE LINK (UPDATED FOR DROPDOWN RESET) ---
+    function analyzeLink() {
+        const urlRaw = document.getElementById('linkInput').value.trim();
+        if(!urlRaw) return;
+        let cleanUrl = urlRaw; if (!/^https?:\/\//i.test(urlRaw)) { cleanUrl = 'https://' + urlRaw; } cardState.fullUrl = cleanUrl;
+        let domain = ""; try { domain = new URL(cleanUrl).hostname.toLowerCase(); } catch (e) { return; }
+        let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace(/^www\./, '');
+        let parts = displayUrl.split('/');
+        let handle = parts[1] ? parts[1].split('?')[0] : '';
+        let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
+        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; setEmojis('📸','❤️','👤'); }
+        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); if(parts[1] === 'in' && parts[2]) handle = parts[2].split('?')[0]; }
+        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
+        
+        // Update Auto-Base state
+        cardState.baseClass = newTheme; 
+        cardState.source = newSource; 
+        cardState.icon = newIcon; 
+        
+        // Auto-Reset to Base unless Custom is active
+        if(!cardState.customBg) {
+            document.getElementById('themeSelect').value = 'default';
+            document.getElementById('cardTheme').className = `layer-base ${newTheme}`;
+        }
+        
+        if(handle) { cardState.name = handle; document.getElementById('inName').value = handle; }
+        generateQR(); renderCard();
+    }
+
     // --- RENDER ---
     function renderCard() {
-        // SCALES
         const sName = document.getElementById('scaleName').value;
         const sTitle = document.getElementById('scaleTitle').value;
         const sStats = document.getElementById('scaleStats').value;
-        
         const c = document.getElementById('captureCard');
         c.style.setProperty('--name-scale', sName);
         c.style.setProperty('--title-scale', sTitle);
         c.style.setProperty('--stat-scale', sStats);
-        
         cardState.scales = { name: sName, title: sTitle, stats: sStats };
 
-        // CONTENT
         const inName = document.getElementById('inName').value;
         const inTitle = document.getElementById('inTitle').value;
         const inContact = document.getElementById('inContact').value;
@@ -432,7 +500,7 @@
         }
     }
 
-    // --- HTML EXPORT ---
+    // --- HTML EXPORT (FIXED TOKEN) ---
     function downloadHTML() {
         const title = document.getElementById('inName').value || 'Card';
         const docClone = document.documentElement.cloneNode(true);
@@ -463,27 +531,7 @@
         const a = document.createElement('a'); a.download = `Live_Card_${title}.html`; a.href = URL.createObjectURL(blob); a.click();
     }
 
-    // --- COLOR ENGINE ---
-    function setCustomTheme() {
-        const c1 = document.getElementById('col1').value;
-        const c2 = document.getElementById('col2').value;
-        const bg = `linear-gradient(135deg, ${c1}, ${c2})`;
-        const themeEl = document.getElementById('cardTheme');
-        themeEl.className = 'layer-base'; 
-        themeEl.style.background = bg;
-        cardState.customBg = bg;
-        document.querySelectorAll('.texture-grid .option-btn').forEach(b => b.classList.remove('active'));
-    }
-
-    function setTheme(t, b) { 
-        document.getElementById('cardTheme').style.background = ''; 
-        cardState.customBg = null;
-        document.getElementById('cardTheme').className = t === 'default' ? `layer-base ${cardState.baseClass}` : `layer-base ${t}`; 
-        b.parentElement.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active')); 
-        b.classList.add('active'); 
-    }
-
-    // --- VCARD ---
+    // --- VCARD (STRICT CLEAN) ---
     function downloadVCard() {
         const name = cardState.name || "Contact";
         const phone = cardState.phone || "";
@@ -528,31 +576,6 @@
             g.style.background = `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.3) 0%, transparent 60%)`;
         }
         requestAnimationFrame(autoPlayLoop);
-    }
-
-    function analyzeLink() {
-        const urlRaw = document.getElementById('linkInput').value.trim();
-        if(!urlRaw) return;
-        let cleanUrl = urlRaw; if (!/^https?:\/\//i.test(urlRaw)) { cleanUrl = 'https://' + urlRaw; } cardState.fullUrl = cleanUrl;
-        let domain = ""; try { domain = new URL(cleanUrl).hostname.toLowerCase(); } catch (e) { return; }
-        let displayUrl = urlRaw.replace(/^https?:\/\//, '').replace(/^www\./, '');
-        let parts = displayUrl.split('/');
-        let handle = parts[1] ? parts[1].split('?')[0] : '';
-        let newTheme='theme-generic', newSource='WEBSITE', newIcon='fa-globe';
-        if (domain.includes('instagram.com')) { newTheme='theme-instagram'; newSource='INSTAGRAM'; newIcon='fa-instagram'; setEmojis('📸','❤️','👤'); }
-        else if (domain.includes('linkedin.com')) { newTheme='theme-linkedin'; newSource='LINKEDIN'; newIcon='fa-linkedin'; setEmojis('🤝','👥','📄'); if(parts[1] === 'in' && parts[2]) handle = parts[2].split('?')[0]; }
-        else if (domain.includes('twitter.com') || domain.includes('x.com')) { newTheme='theme-twitter'; newSource='TWITTER'; newIcon='fa-twitter'; setEmojis('🐦','🔁','❤️'); }
-        
-        if(!cardState.customBg) updateBaseTheme(newTheme, newSource, newIcon);
-        else { cardState.baseClass = newTheme; cardState.source = newSource; cardState.icon = newIcon; }
-        
-        if(handle) { cardState.name = handle; document.getElementById('inName').value = handle; }
-        generateQR(); renderCard();
-    }
-
-    function updateBaseTheme(c, s, i) { 
-        cardState.baseClass = c; cardState.source = s; cardState.icon = i; 
-        document.getElementById('cardTheme').className = `layer-base ${c}`; 
     }
 
     function generateQR() { const qrBox = document.getElementById('qrContainer'); const isChecked = document.querySelector('.qr-controls input[type="checkbox"]').checked; if (!isChecked) { qrBox.style.display = 'none'; return; } qrBox.style.display = 'flex'; qrBox.innerHTML = ""; new QRCode(qrBox, { text: cardState.fullUrl, width: 256, height: 256, colorDark : "#000000", colorLight : "rgba(255,255,255,0)", correctLevel : QRCode.CorrectLevel.M }); resizeQR(); }
